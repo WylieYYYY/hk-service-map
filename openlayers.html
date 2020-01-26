@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+	<head>
+		<meta charset="utf-8">
+		<meta name="theme-color" content="#82e000">
+		<title>HK Service Map</title>
+		<link rel="manifest" href="manifest.json"/>
+		<link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/css/ol.css"/>
+		<link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+		<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
+		<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/build/ol.js"></script>
+		<script src="scripts/localise.js" charset="UTF-8"></script>
+		<script src="scripts/unitinfo.js" charset="UTF-8"></script>
+	</head>
+	<body>
+		<div id="map" class="map"></div>
+		<pre id="info" class="status bar"/>
+		<div id="lang_unresolved_container" class="ol-unselectable ol-control"
+			style="position: absolute; top: 10%; left: .5em">
+			<button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
+				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
+				onclick="lang_change(lang_callback)">🌐</button>
+			<button id="unresolved" style="color: transparent; text-shadow: 0 0 0 white"
+				onclick="location.href = 'unresolved.html'">🚧</button>
+		</div>
+		<script src="scripts/info.js"></script>
+		<script>
+			var lang = "TChinese";
+			document.getElementById("map").style.height = window.innerHeight + "px";
+			document.getElementById("unresolved").title = localise["unresolvedList" + lang];
+			var info = document.getElementById("info");
+			var marker_list = [];
+			var selected = 0;
+			for (var i = 0; i < longlat.length; i++) {
+				if (longlat[i][1] == -90) break;
+				var marker = new ol.Feature({
+					geometry: new ol.geom.Point(ol.proj.fromLonLat(longlat[i])),
+					unit_index: i + 1
+				});
+				marker_list.push(marker);
+			}
+			var marker_scale = 0.5;
+			if ("ontouchstart" in document.documentElement) {
+				marker_scale = 1;
+				info.style = "font-size: 200%";
+			}
+			var marker_style = new ol.style.Style({
+				image: new ol.style.Icon({
+					anchor: [0.5, 1],
+					src: "styles/images/marker.png",
+					scale: marker_scale
+				})
+			});
+			var vector_layer = new ol.layer.Vector({
+				source: new ol.source.Vector({
+					features: marker_list
+				}),
+				style: function(feature) {
+					if (selected == 0 || selected == feature.getProperties()["unit_index"])
+						return [marker_style];
+					return [];
+				}
+			});
+			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
+			var lang_unresolved_control = function() {
+				ol.control.Control.call(this, {
+					element: lang_unresolved_container
+				});
+			};
+			lang_unresolved_control.prototype = Object.create(ol.control.Control.prototype);
+			lang_unresolved_control.prototype.constructor = lang_unresolved_control;
+			var map = new ol.Map({
+				target: "map",
+				controls: ol.control.defaults().extend([
+					new lang_unresolved_control()
+				]),
+				layers: [
+					new ol.layer.Tile({
+						source: new ol.source.OSM()
+					}),
+					vector_layer
+				],
+				view: new ol.View({
+					center: ol.proj.fromLonLat([114.17, 22.35]),
+					zoom: 11,
+					maxZoom: 18
+				})
+			});
+			map.on("pointermove", function(evt) {
+				if (evt.dragging) return;
+				var pixel = map.getEventPixel(evt.originalEvent);
+				var features = map.getFeaturesAtPixel(pixel);
+				if (features.length == 0) {
+					map.getTargetElement().style.cursor = "";
+					if (selected == 0) {
+						info.innerText = "";
+						info.style.opacity = 0;
+					}
+					return;
+				}
+				if (selected == 0) {
+					var unit_index = features[0].getProperties()["unit_index"];
+					info.innerText = unitinfo[unit_index][unitinfo[0].indexOf("name" + lang)];
+				}
+				info.style.opacity = 1;
+				map.getTargetElement().style.cursor = "pointer";
+			});
+			map.on("click", function(evt) {
+				var pixel = map.getEventPixel(evt.originalEvent);
+				var features = map.getFeaturesAtPixel(pixel);
+				if (features.length > 0) {
+					info_switch(features[0].getProperties()["unit_index"]);
+					vector_layer.getSource().changed();
+				}
+			});
+			var lang_callback = function() {
+				if (selected != 0) {
+					info_update(selected, info, marker_scale);
+					info.className += " spaced-dock";
+				}
+				document.getElementById("unresolved").title = localise["unresolvedList" + lang];
+			};
+		</script>
+		<script src="scripts/lang.js"></script>
+	</body>
+</html>

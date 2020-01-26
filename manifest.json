@@ -1,0 +1,13 @@
+{
+	"name": "HK Service Map",
+	"short_name": "Service Map",
+	"icons": [{
+		"src": "favicon.png",
+		"size": "512x512",
+		"type": "image/png"
+	}],
+	"start_url": "index.html",
+	"background_color": "#82e000",
+	"display": "fullscreen",
+	"theme_color": "#82e000"
+}

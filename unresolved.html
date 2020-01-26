@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+	<head>
+		<meta charset="utf-8">
+		<meta name="theme-color" content="#82e000">
+		<title>HK Service Map</title>
+		<link rel="manifest" href="manifest.json"/>
+		<link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+		<link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+		<script src="scripts/localise.js" charset="UTF-8"></script>
+		<script src="scripts/unitinfo.js" charset="UTF-8"></script>
+	</head>
+	<body>
+		<button id="lang" title="Change language" style="width: 30px; height: 30px; float:right"
+			onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
+			onclick="lang_change(lang_callback)">🌐</button>
+		<button id="back" title="Back" style="width: 30px; height: 30px; float:right"
+			onclick="history.back()">↩️</button>
+		<div id="title" style="height: 30px; text-align: center"></div>
+		<script src="scripts/info.js"></script>
+		<script>
+			var lang = "TChinese";
+			var title = document.getElementById("title");
+			title.innerText = localise["unresolvedDesc" + lang];
+			if ("ontouchstart" in document.documentElement) {
+				title.style = "font-size: 200%";
+				document.getElementById("lang").style = "width: 60px; height: 60px; float: right; font-size: 200%";
+				document.getElementById("back").style = "width: 60px; height: 60px; float: right; font-size: 200%";
+			}
+			var unresolved_list = [];
+			for (var i = 1; longlat[longlat.length - i][1] == -90; i++) {
+				unresolved_list[i] = document.createElement("div");
+				unresolved_list[i].className = "info bar";
+				info_update(longlat.length - i, unresolved_list[i], 1.5);
+				document.body.appendChild(unresolved_list[i]);
+				var divider = document.createElement("div");
+				divider.style = "height: 10px";
+				document.body.appendChild(divider);
+			}
+			var lang_callback = function() {
+				document.getElementById("title").innerText = localise["unresolvedDesc" + lang];
+				for (var i = 1; i < unresolved_list.length; i++) {
+					info_update(longlat.length - i, unresolved_list[i], 1.5);
+				}
+			};
+		</script>
+		<script src="scripts/lang.js"></script>
+	</body>
+</html>
