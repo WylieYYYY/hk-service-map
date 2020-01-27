@@ -164,8 +164,8 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url):
 		lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
 		lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
 		# distort slightly to reduce the chance of overlap
-		lon += random.randrange(-5, 5) / 1000000
-		lat += random.randrange(-5, 5) / 1000000
+		lon += random.randrange(-50, 50) / 1000000
+		lat += random.randrange(-50, 50) / 1000000
 		longlat_list[unit_index] = [round(lon, 6), round(lat, 6)]
 		# scale used time to estimate time
 		estimate_sec = (len(parsed_index) / (time_index + 1) - 1) * (time.time() - start_time)

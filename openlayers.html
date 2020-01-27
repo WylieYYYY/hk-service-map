@@ -52,14 +52,20 @@
 					scale: marker_scale
 				})
 			});
+			var selected_style = new ol.style.Style({
+				image: new ol.style.Icon({
+					anchor: [0.5, 1],
+					src: "styles/images/selected.png",
+					scale: marker_scale
+				})
+			});
 			var vector_layer = new ol.layer.Vector({
 				source: new ol.source.Vector({
 					features: marker_list
 				}),
 				style: function(feature) {
-					if (selected == 0 || selected == feature.getProperties()["unit_index"])
-						return [marker_style];
-					return [];
+					if (selected == feature.getProperties()["unit_index"]) return [selected_style];
+					return [marker_style];
 				}
 			});
 			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
@@ -110,6 +116,7 @@
 				var pixel = map.getEventPixel(evt.originalEvent);
 				var features = map.getFeaturesAtPixel(pixel);
 				if (features.length > 0) {
+					if (selected != 0 && selected != features[0].getProperties()["unit_index"]) selected = 0;
 					info_switch(features[0].getProperties()["unit_index"]);
 					vector_layer.getSource().changed();
 				}

@@ -93,8 +93,12 @@
 				iconSize: [64, 64].map(x => x * marker_scale),
 				iconAnchor: [32, 64].map(x => x * marker_scale)
 			});
+			var selected_icon = L.icon({
+				iconUrl: "styles/images/selected.png",
+				iconSize: [64, 64].map(x => x * marker_scale),
+				iconAnchor: [32, 64].map(x => x * marker_scale)
+			});
 			var marker_group = L.layerGroup().addTo(map);
-			var isolate_group = L.layerGroup();
 			function add_marker(longlat_index, group) {
 				var marker = L.marker([].concat(longlat[longlat_index]).reverse(), {icon: marker_icon});
 				marker.properties = {};
@@ -115,16 +119,13 @@
 				});
 				marker.on("click", function(e) {
 					map.doubleClickZoom.disable();
-					info_switch(this.properties["unit_index"]);
-					if (selected == 0) {
-						map.removeLayer(isolate_group);
-						marker_group.addTo(map);
-					} else {
-						isolate_group.clearLayers();
-						add_marker(this.properties["unit_index"] - 1, isolate_group);
-						map.removeLayer(marker_group);
-						isolate_group.addTo(map);
+					if (selected != 0 && selected != this.properties["unit_index"]) {
+						marker_group.getLayers()[selected - 1].setIcon(marker_icon);
+						selected = 0;
 					}
+					info_switch(this.properties["unit_index"]);
+					if (selected == 0) this.setIcon(marker_icon);
+					else this.setIcon(selected_icon);
 				});
 				marker.addTo(group);
 			}
