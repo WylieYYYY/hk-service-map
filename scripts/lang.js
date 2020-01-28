@@ -1,3 +1,4 @@
+"use strict";
 function lang_mouse_over(mousein) {
 	document.getElementById("lang").innerText = mousein ? locale[lang] : "🌐";
 }

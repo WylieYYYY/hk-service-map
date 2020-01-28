@@ -30,10 +30,11 @@
 			<a id="lang" href="#" title="Change language" role="button" aria-label="Change language"
 				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
 				onclick="lang_change(lang_callback)">🌐</a>
-			<a id="unresolved" href="unresolved.html" style=>🚧</a>
+			<a id="unresolved" href="unresolved.html">🚧</a>
 		</div>
 		<script src="scripts/info.js"></script>
 		<script>
+			"use strict";
 			document.getElementById("map").style.height = window.innerHeight + "px";
 			document.getElementById("unresolved").title = localise["unresolvedList" + lang];
 			var selected = 0;

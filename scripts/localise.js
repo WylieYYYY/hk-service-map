@@ -1,8 +1,8 @@
 var lang = "TChinese";
 var locale = {
-	"English":                   "EN",
-	"TChinese":                  "繁",
-	"SChinese":                  "简"
+	"English":                         "EN",
+	"TChinese":                        "繁",
+	"SChinese":                        "简"
 };
 var localise = {
 	"unresolvedListEnglish":           "Unresolved list",
@@ -11,6 +11,9 @@ var localise = {
 	"unresolvedDescEnglish":           "Following is a list of service units with unresolved address, please use Ctrl+F to search.",
 	"unresolvedDescTChinese":          "以下爲所有未能定位的服務單位列表，請使用Ctrl+F搜尋。",
 	"unresolvedDescSChinese":          "以下為所有未能定位的服务单位列表，请使用Ctrl+F搜寻。",
+	"backEnglish":                     "Back",
+	"backTChinese":                    "返回",
+	"backSChinese":                    "返回",
 	"infoEnglish":                     "INFORMATION",
 	"infoTChinese":                    "院舍資訊",
 	"infoSChinese":                    "院舍资讯",
@@ -23,9 +26,15 @@ var localise = {
 	"addressEnglish":                  "Address: ",
 	"addressTChinese":                 "地址：",
 	"addressSChinese":                 "地址：",
-	"telephoneNumber":                 "➰️: ",
-	"addTelephoneNumber":              "➰️: ",
-	"faxNumber":                       "📠: ",
+	"telephoneNumberEnglish":          "Telephone Number: ",
+	"telephoneNumberTChinese":         "電話號碼：",
+	"telephoneNumberSChinese":         "电话号码：",
+	"addTelephoneNumberEnglish":       "Additional Telephone Number: ",
+	"addTelephoneNumberTChinese":      "附加電話號碼：",
+	"addTelephoneNumberSChinese":      "附加电话号码：",
+	"faxNumberEnglish":                "Fax Number: ",
+	"faxNumberTChinese":               "傳真號碼：",
+	"faxNumberSChinese":               "传真号码：",
 	"accreditationEnglish":            "Joined Accreditation Schemes: ",
 	"accreditationTChinese":           "參加認證計劃：",
 	"accreditationSChinese":           "参加认证计划：",
