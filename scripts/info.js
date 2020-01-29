@@ -23,6 +23,16 @@ function info_update(unit_index, info, ui_scale) {
 	info.style.width = window.innerWidth / 2 * ui_scale + "px";
 }
 
+function display_status(unit_index) {
+	if ("ontouchstart" in document.documentElement) {
+		info.style.opacity = 0;
+	} else {
+		info.className = "status bar";
+		info.innerText = unitinfo[unit_index][unitinfo[0].indexOf("name" + lang)];
+		info.style.width = "auto";
+	}
+}
+
 function info_switch(unit_index) {
 	if (selected == 0) {
 		selected = unit_index;
@@ -30,8 +40,6 @@ function info_switch(unit_index) {
 		info.className += " spaced-dock";
 	} else {
 		selected = 0;
-		info.className = "status bar";
-		info.innerText = unitinfo[unit_index][unitinfo[0].indexOf("name" + lang)];
-		info.style.width = "auto";
+		display_status(unit_index);
 	}
 }

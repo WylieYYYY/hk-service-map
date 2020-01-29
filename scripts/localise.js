@@ -5,6 +5,12 @@ var locale = {
 	"SChinese":                        "简"
 };
 var localise = {
+	"zoomInEnglish":                   "Zoom in",
+	"zoomInTChinese":                  "放大",
+	"zoomInSChinese":                  "放大",
+	"zoomOutEnglish":                  "Zoom out",
+	"zoomOutTChinese":                 "縮小",
+	"zoomOutSChinese":                 "缩小",
 	"unresolvedListEnglish":           "Unresolved list",
 	"unresolvedListTChinese":          "未定位單位列表",
 	"unresolvedListSChinese":          "未定位单位列表",

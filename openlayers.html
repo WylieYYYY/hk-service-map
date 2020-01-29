@@ -16,6 +16,11 @@
 	<body>
 		<div id="map" class="map"></div>
 		<pre id="info" class="status bar"/>
+		<div id="zoom_container" class="ol-unselectable ol-control"
+			style="position: absolute; top: .5em; left: .5em">
+			<button id="zoom_in" onclick="zoom_by_delta(1)">+</button>
+			<button id="zoom_out" onclick="zoom_by_delta(-1)">−</button>
+		</div>
 		<div id="lang_unresolved_container" class="ol-unselectable ol-control"
 			style="position: absolute; top: 10%; left: .5em">
 			<button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
@@ -28,7 +33,12 @@
 		<script>
 			"use strict";
 			document.getElementById("map").style.height = window.innerHeight + "px";
-			document.getElementById("unresolved").title = localise["unresolvedList" + lang];
+			var zoom_in = document.getElementById("zoom_in");
+			zoom_in.title = localise["zoomIn" + lang];
+			var zoom_out = document.getElementById("zoom_out");
+			zoom_out.title = localise["zoomOut" + lang];
+			var unresolved = document.getElementById("unresolved");
+			unresolved.title = localise["unresolvedList" + lang];
 			var info = document.getElementById("info");
 			var marker_list = [];
 			var selected = 0;
@@ -40,10 +50,15 @@
 				});
 				marker_list.push(marker);
 			}
+			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
 			var marker_scale = 0.5;
 			if ("ontouchstart" in document.documentElement) {
 				marker_scale = 1;
 				info.style = "font-size: 200%";
+				[zoom_in, zoom_out, document.getElementById("lang"), unresolved].forEach(function(element) {
+					element.style = "width: 2.75em; height: 2.75em; font-size: 300%";
+				});
+				lang_unresolved_container.style.top = "20%";
 			}
 			var marker_style = new ol.style.Style({
 				image: new ol.style.Icon({
@@ -68,7 +83,32 @@
 					return [marker_style];
 				}
 			});
-			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
+			var zoom_animation_duration = 250;
+			var zoom_by_delta = function(delta) {
+				var view = map.getView();
+				if (!view) return;
+				var current_zoom = view.getZoom();
+				if (current_zoom != undefined) {
+					var new_zoom = view.getConstrainedZoom(current_zoom + delta);
+					if (zoom_animation_duration > 0) {
+						if (view.getAnimating()) view.cancelAnimations();
+						view.animate({
+							zoom: new_zoom,
+							duration: zoom_animation_duration,
+							easing: ol.easing.easeOut
+						});
+					}
+					else view.setZoom(new_zoom);
+				}
+			};
+			var zoom_container = document.getElementById("zoom_container");
+			var zoom_control = function() {
+				ol.control.Control.call(this, {
+					element: zoom_container
+				});
+			};
+			zoom_control.prototype = Object.create(ol.control.Control.prototype);
+			zoom_control.prototype.constructor = zoom_control;
 			var lang_unresolved_control = function() {
 				ol.control.Control.call(this, {
 					element: lang_unresolved_container
@@ -78,9 +118,11 @@
 			lang_unresolved_control.prototype.constructor = lang_unresolved_control;
 			var map = new ol.Map({
 				target: "map",
-				controls: ol.control.defaults().extend([
+				controls: [
+					new ol.control.Attribution(),
+					new zoom_control(),
 					new lang_unresolved_control()
-				]),
+				],
 				layers: [
 					new ol.layer.Tile({
 						source: new ol.source.OSM()
@@ -105,10 +147,7 @@
 					}
 					return;
 				}
-				if (selected == 0) {
-					var unit_index = features[0].getProperties()["unit_index"];
-					info.innerText = unitinfo[unit_index][unitinfo[0].indexOf("name" + lang)];
-				}
+				if (selected == 0) display_status(features[0].getProperties()["unit_index"]);
 				info.style.opacity = 1;
 				map.getTargetElement().style.cursor = "pointer";
 			});
@@ -126,7 +165,9 @@
 					info_update(selected, info, marker_scale);
 					info.className += " spaced-dock";
 				}
-				document.getElementById("unresolved").title = localise["unresolvedList" + lang];
+				zoom_in.title = localise["zoomIn" + lang];
+				zoom_out.title = localise["zoomOut" + lang];
+				unresolved.title = localise["unresolvedList" + lang];
 			};
 		</script>
 		<script src="scripts/lang.js"></script>

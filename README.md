@@ -3,7 +3,7 @@ HK Service Map is a map to visualise service units data from XML provided by the
 #### Screenshot
 Map screen including hover status bar in bottom-left with Leaflet.js.  
 ![Example Hover Screenshot](screenshot-hover.png "Example Hover Screenshot")  
-Displaying detailed info with a different locale with OpenLayers, change by clicking the button with globe icon.  
+Displaying detailed info in traditional Chinese with OpenLayers, change language by clicking the button with globe icon.  
 ![Example Info Screenshot](screenshot-info.png "Example Info Screenshot")  
 Page with a list of unresolved address, navigated to by clicking the fence icon under the globe icon in map screen.  
 ![Example Unresolved Screenshot](screenshot-unresolved.png "Example Unresolved Screenshot")  
@@ -38,4 +38,4 @@ Target XML must follow this template for this map to work, `<ANY/>` means two no
 	</serviceUnits>
 </ANY>
 ```
-With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display additional tags' names.
+With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed.
