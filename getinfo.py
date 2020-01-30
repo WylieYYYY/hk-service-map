@@ -99,7 +99,7 @@ def parse_address(root, xmlns_url):
 				continue
 			# strip unclean unit name
 			fields[index] = re.sub(r'(.* AT )(?=.*)', '', fields[index])
-		# prepend name if the address is unparsed
+		# scope not large enough, address is unparsed
 		if detail and not weak_large:
 			unparsed_count += 1
 			# do not trim, address is unparsed
@@ -116,13 +116,6 @@ def parse_address(root, xmlns_url):
 	print(f'Parsing ratio is {len(parsed_address)}:{unparsed_count}')
 	# return all required data for traversing XML
 	return [parsed_index, parsed_address]
-
-def file_len(fname):
-	i = 0
-	with open(fname) as f:
-		for i, l in enumerate(f):
-			pass
-	return i + 1
 
 # take in valid address list and perform API request
 def batch_req(parsed_index, parsed_address, root, xmlns_url):
