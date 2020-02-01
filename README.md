@@ -26,9 +26,9 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 [Basic Information and Service Quality Information of Residential Care Homes for Persons with Disabilities](https://rchdinfo.swd.gov.hk/sites/rchd-swd/files/rchd_rsp_list.xml)
 
 ### XML Template
-Target XML must follow this template for this map to work, `<ANY/>` means two node with any tag can be placed here. `count` attribute in tag means the tag can be repeated by `count` times, otherwise only once is allowed, other attributes are mandatory. `[abc here]` means insert the custom value denoted by `abc`
+Target XML must follow this template for this map to work, `<ANY/>` means two node with any tag can be placed here. `count` attribute in tag means the tag can be repeated by `count` times, otherwise only once is allowed, other attributes are mandatory. `[abc here]` means insert the custom value denoted by `abc`. Tags can contain any attributes.
 ```
-<ANY xmlns="[XML hostname here]">
+<ANY>
 	<serviceUnits>
 		<serviceUnit count="Infinity">
 			<addressEnglish/>
@@ -38,4 +38,4 @@ Target XML must follow this template for this map to work, `<ANY/>` means two no
 	</serviceUnits>
 </ANY>
 ```
-With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed.
+With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed. If empty string is used in localised names, the associated property is skipped from displaying.

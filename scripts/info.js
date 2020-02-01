@@ -13,6 +13,7 @@ function info_update(unit_index, info, ui_scale) {
 		var localised_key = unitinfo[0][index];
 		if (localised_key.indexOf(lang) == -1) localised_key += lang;
 		var localised_name = localise[localised_key];
+		if (localised_name == "") return;
 		if (localised_name == undefined) {
 			localised_name = unitinfo[0][index].replace(new RegExp("(" + Object.keys(locale).join("|") + ")", "g"), "");
 			localised_name = localised_name.replace(/([A-Z])/g, " $1")
