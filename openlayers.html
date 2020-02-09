@@ -43,7 +43,7 @@
 			var marker_list = [];
 			var selected = 0;
 			for (var i = 0; i < longlat.length; i++) {
-				if (longlat[i][1] == -90) break;
+				if (longlat[i][1] == -91) break;
 				var marker = new ol.Feature({
 					geometry: new ol.geom.Point(ol.proj.fromLonLat(longlat[i])),
 					unit_index: i + 1

@@ -21,8 +21,22 @@ def request_service_xml(xml_url):
 		sys.exit()
 	return xml.etree.ElementTree.fromstring(response.text)
 
+# create or read address override table
+def get_override_table():
+	table = {}
+	if not os.path.exists('override.txt'):
+		print('Creating address override table')
+		with open('override.txt', 'w') as f:
+			f.write('See README for usage\t[NO OVERRIDE]')
+	else:
+		print('Reading address override table')
+		with open('override.txt', 'r') as f:
+			for line in f:
+				table[line.split('\t')[0]] = line.split('\t')[1].rstrip()
+	return table
+
 # take in XML root with specific tags and parse address
-def parse_address(root, xmlns_url):
+def parse_address(root, xmlns_url, override_table):
 	xmlns = {'xmlns': xmlns_url}
 	parsed_index, parsed_address = ([] for i in range(2))
 	unparsed_count = 0
@@ -49,6 +63,7 @@ def parse_address(root, xmlns_url):
 		trim_index = 0
 		# the scope maybe large enough, but keep searching
 		weak_large = False
+		override_f = open('override.txt', 'a')
 		for index in range(len(fields)):
 			# remove additional number
 			strip_num_regex = r'([A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)? ?AND ?)(?=[A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)?)'
@@ -104,10 +119,11 @@ def parse_address(root, xmlns_url):
 			fields[index] = re.sub(r'(.* AT )(?=.*)', '', fields[index])
 		# scope not large enough, address is unparsed
 		if detail and not weak_large:
+			name = unit.find('xmlns:nameTChinese', xmlns).text
+			address = unit.find('xmlns:addressTChinese', xmlns).text
+			if not name in override_table:
+				override_f.write(f'\n{name}\t[NO OVERRIDE]\t{address}')
 			unparsed_count += 1
-			# do not trim, address is unparsed
-			address = unit.find('xmlns:addressEnglish', xmlns).text
-			address = re.sub(r', ?,', ',', address)
 			print('Unable to parse ' + address)
 		else:
 			parsed_index.append(unit_index)
@@ -116,29 +132,30 @@ def parse_address(root, xmlns_url):
 			address = re.sub(r', ?,', ',', address)
 			parsed_address.append(address)
 			print('Parsed ' + address)
+	override_f.close()
 	print(f'Parsing ratio is {len(parsed_address)}:{unparsed_count}')
 	# return all required data for traversing XML
 	return [parsed_index, parsed_address, [len(parsed_address), unparsed_count]]
 
 # take in valid address list and perform API request
-def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio):
+def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_table):
 	lookup_url = 'https://www.als.ogcio.gov.hk/lookup?n=1&q='
 	xmlns = {'xmlns': xmlns_url}
 	# allocate full length longlat list
 	unit_list = root.find('xmlns:serviceUnits', xmlns).findall('xmlns:serviceUnit', xmlns)
-	longlat_list = [[0,-90]] * len(unit_list)
+	longlat_list = [[0,-91]] * len(unit_list)
 	# for finishing time estimation
 	start_time = time.time()
 	# encode and request multiple URL simultaneously
-	request_gen = (grequests.get(lookup_url + urllib.parse.quote(url) + '&i=' + str(parsed_index[request_index]))
-		for request_index, url in enumerate(parsed_address))
+	request_gen = (grequests.get(lookup_url + urllib.parse.quote(address) + '&i=' + str(parsed_index[request_index]))
+		for request_index, address in enumerate(parsed_address))
+	override_f = open('override.txt', 'a')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
 		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
 		# recovery prompt
 		if not response:
 			print('Request failed for ' + address + ', trying again')
 			response = requests.get(response.request.url)
-			address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
 			if not response:
 				print('Giving up, try diagnose network and rerun later')
 				sys.exit()
@@ -151,13 +168,15 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio):
 		parsed_district = target_unit.find('xmlns:districtEnglish', xmlns).text.upper().replace(' AND ', ' & ')
 		address_prefix = 'SuggestedAddress/Address/PremisesAddress/'
 		longlat_district = longlat_root.find(address_prefix + 'EngPremisesAddress/EngDistrict/DcDistrict').text
-		# append to the unresolved list if district test failed
-		if parsed_district not in longlat_district:
+		name = target_unit.find('xmlns:nameTChinese', xmlns).text
+		# append to override table if district test failed and no entry exists
+		if parsed_district not in longlat_district and name not in override_table:
 			print('District test failed for ' + address)
+			tcaddress = target_unit.find('xmlns:addressTChinese', xmlns).text
+			override_f.write(f'\n{name}\t[NO OVERRIDE]\t{tcaddress}')
 			ratio[0] -= 1
 			ratio[1] += 1
 			continue
-		# retrieve and write latlong to file
 		lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
 		lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
 		# distort slightly to reduce the chance of overlap
@@ -168,12 +187,43 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio):
 		estimate_sec = (len(parsed_index) / (time_index + 1) - 1) * (time.time() - start_time)
 		print('[Estimated time left: ' + str(datetime.timedelta(seconds=estimate_sec)) + ']')
 	print(f'Query ratio is {ratio[0]}:{ratio[1]}')
+	override_f.close()
+	print('Requesting override table')
+	request_gen = (grequests.get(lookup_url + urllib.parse.quote(value) + '&i=' + urllib.parse.quote(key))
+		for key, value in override_table.items() if value != '[NO OVERRIDE]')
+	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
+		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
+		# recovery prompt
+		if not response:
+			print('Request failed for ' + address + ', trying again')
+			response = requests.get(response.request.url)
+			if not response:
+				print('Giving up, try diagnose network and rerun later')
+				sys.exit()
+		print('Got response for ' + address)
+		longlat_root = xml.etree.ElementTree.fromstring(response.text)
+		address_prefix = 'SuggestedAddress/Address/PremisesAddress/'
+		lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
+		lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
+		# distort slightly to reduce the chance of overlap
+		lon += random.randrange(-50, 50) / 1000000
+		lat += random.randrange(-50, 50) / 1000000
+		override_table[urllib.parse.unquote(response.request.url.split('&i=')[1])
+			+ ' LongLat'] = [round(lon, 6), round(lat, 6)]
+	print('Applying override table')
+	unit_dict_list = xmljson.parker.data(root)[f'{{{xmlns_url}}}serviceUnits'][f'{{{xmlns_url}}}serviceUnit']
+	for index , unit in enumerate(unit_dict_list):
+		# define None for default address override
+		unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = None
+		name_key = unit[f'{{{xmlns_url}}}nameTChinese']
+		if name_key + ' LongLat' in override_table:
+			longlat_list[index] = override_table[name_key + ' LongLat']
+			unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = override_table[name_key]
 	print('Reordering data by decreasing latitude')
-	lat_index_list, longlat_list = zip(*sorted(zip(range(len(longlat_list)), longlat_list),
+	lat_unit_map, longlat_list = zip(*sorted(zip(range(len(longlat_list)), longlat_list),
 		key=lambda unit: unit[1][1], reverse=True))
 	# uses JS to avoid CORS
 	print('Writing langlat and dumping XML as JS to unitinfo.js')
-	unit_dict_list = xmljson.parker.data(root)[f'{{{xmlns_url}}}serviceUnits'][f'{{{xmlns_url}}}serviceUnit']
 	with open('scripts/unitinfo.js', 'w') as f:
 		f.write('var longlat = ')
 		json.dump(longlat_list, f, ensure_ascii=False, separators=(',', ':'))
@@ -181,9 +231,9 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio):
 		# strip namespace from key
 		xml_key = [re.sub(r'^\{[^\}]*\}', '', key) for key in list(unit_dict_list[0].keys())]
 		json.dump(xml_key, f, ensure_ascii=False, separators=(',', ':'))
-		for lat_index in lat_index_list:
+		for unit_index in lat_unit_map:
 			f.write(',')
-			json.dump(list(unit_dict_list[lat_index].values()), f, ensure_ascii=False, separators=(',', ':'))
+			json.dump(list(unit_dict_list[unit_index].values()), f, ensure_ascii=False, separators=(',', ':'))
 		f.write('];')
 	print('Finished unitinfo.js')
 
@@ -194,8 +244,9 @@ print('XML request sent')
 service_root = request_service_xml(service_url)
 xmlns_url = re.search(r'(?<=^{)[^}]*(?=})', service_root.tag)
 xmlns_url = xmlns_url[0] if xmlns_url else ''
+override_table = get_override_table()
 print('Parsing address')
-result_list = parse_address(service_root, xmlns_url)
+result_list = parse_address(service_root, xmlns_url, override_table)
 print('Requesting for geospatial information')
-batch_req(result_list[0], result_list[1], service_root, xmlns_url, result_list[2])
+batch_req(result_list[0], result_list[1], service_root, xmlns_url, result_list[2], override_table)
 print('Succesfully execute getlonglat.py')

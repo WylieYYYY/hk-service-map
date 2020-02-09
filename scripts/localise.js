@@ -58,5 +58,8 @@ var localise = {
 	"mealProvisionSChinese":           "膳食：",
 	"typeResentialCareHomesEnglish":   "Type of RCHD:",
 	"typeResentialCareHomesTChinese":  "院舍類別：",
-	"typeResentialCareHomesSChinese":  "院舍类别："
+	"typeResentialCareHomesSChinese":  "院舍类别：",
+	"addressOverrideEnglish":          "Address Approximation: ",
+	"addressOverrideTChinese":         "近似地址：",
+	"addressOverrideSChinese":         "近似地址："
 };

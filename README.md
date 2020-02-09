@@ -13,6 +13,7 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 - Can be run locally or with a web server;
 - No API limit (Address lookup service by HK-OGCIO, map tiles by OSM, layering API by OpenLayers or Leaflet.js);
 - Multilingual support (Additional language and field support can be added through editing `scripts/localise.js`);
+- Address correction with `override.txt`;
 
 ### Setup
 1. Download the source code here.
@@ -24,14 +25,15 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 ### Tested URL
 [Basic Information and Service Quality Information of Residential Care Homes for the Elderly](https://elderlyinfo.swd.gov.hk/sites/ltc-swd/files/rche_rsp_list.xml)  
 [Basic Information and Service Quality Information of Residential Care Homes for Persons with Disabilities](https://rchdinfo.swd.gov.hk/sites/rchd-swd/files/rchd_rsp_list.xml)
-
 ### XML Template
 Target XML must follow this template for this map to work, `<ANY/>` means two node with any tag can be placed here. `count` attribute in tag means the tag can be repeated by `count` times, otherwise only once is allowed, other attributes are mandatory. `[abc here]` means insert the custom value denoted by `abc`. Tags can contain any attributes.
 ```
 <ANY>
 	<serviceUnits>
 		<serviceUnit count="Infinity">
+			<nameTChinese/>
 			<addressEnglish/>
+			<addressTChinese/>
 			<districtEnglish/>
 			<ANY count="Infinity"/>
 		</serviceUnit>
@@ -39,3 +41,15 @@ Target XML must follow this template for this map to work, `<ANY/>` means two no
 </ANY>
 ```
 With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed. If empty string is used in localised names, the associated property is skipped from displaying.
+
+### Use Case of override.txt
+`override.txt` is a tab separated value file of the following format, no empty lines are allowed:
+```
+[Traditional Chinese Name]	[Proposed Address]	[Registered Address]
+```
+The file can be use either for replacing incorrect coordinates from address query or locating unresolved units with nearby landmark.  
+It regenerates automatically if removed, and add units with unresolved address to the file.  
+After changing `override.txt`, `getinfo.py` needs to be rerun.  
+`[Traditional Chinese Name]` is used to identify the unit to modify.  
+`[Proposed Address]` is the target approximated address to query for the unit, if it is the string `[NO OVERRIDE]`, the entry will be ignored.  
+`[Registered Address]` is only for reference when the file is generated, and can be omitted.
