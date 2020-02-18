@@ -52,4 +52,12 @@ It regenerates automatically if removed, and add units with unresolved address t
 After changing `override.txt`, `getinfo.py` needs to be rerun.  
 `[Traditional Chinese Name]` is used to identify the unit to modify.  
 `[Proposed Address]` is the target approximated address to query for the unit, if it is the string `[NO OVERRIDE]`, the entry will be ignored.  
-`[Registered Address]` is only for reference when the file is generated, and can be omitted.
+`[Registered Address]` is only for reference when the file is generated, and can be omitted.  
+
+Entries should not contain any lowercase letter, as they are treated as comments and will be ignored.
+
+#### Comments
+Comments in `override.txt` can disregard the tab separated value format, but it must have at least one lowercase character.  
+Comments should not be all lowercase snakecase as they are reserved as option key (e.g. `xml_url`).  
+Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`  
+Disallowed comment examples: `this`, `snake_case`, `UPPERCASE`, `UPPER_SNAKECASE`, `!@#$%^&*12345`

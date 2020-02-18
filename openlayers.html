@@ -132,7 +132,7 @@
 				view: new ol.View({
 					center: ol.proj.fromLonLat([114.17, 22.35]),
 					zoom: 11,
-					maxZoom: 18
+					maxZoom: 16 + marker_scale * 4
 				})
 			});
 			map.on("pointermove", function(evt) {

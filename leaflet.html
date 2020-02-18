@@ -43,8 +43,10 @@
 			var unresolved = document.getElementById("unresolved");
 			unresolved.title = localise["unresolvedList" + lang];
 			var selected = 0;
+			var marker_scale = 0.5;
+			if ("ontouchstart" in document.documentElement) marker_scale = 1;
 			var map = L.map("map", {
-				maxZoom: 18,
+				maxZoom: 16 + marker_scale * 4,
 				zoomControl: false,
 				zoomSnap: 0
 			}).setView([22.35, 114.17], 11);
@@ -52,6 +54,8 @@
 				this.doubleClickZoom.enable();
 			});
 			L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+				maxNativeZoom: 18,
+				maxZoom: 20,
 				attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
 			}).addTo(map);
 			var zoom_container = document.getElementById("zoom_container");
@@ -86,9 +90,7 @@
 				return info;
 			};
 			info_control.addTo(map);
-			var marker_scale = 0.5;
 			if ("ontouchstart" in document.documentElement) {
-				marker_scale = 1;
 				info.style = "font-size: 200%";
 				[zoom_in, zoom_out, document.getElementById("lang"), unresolved].forEach(function(element) {
 					element.style = "width: 78px; height: 78px; font-size: 300%; line-height: 78px";
