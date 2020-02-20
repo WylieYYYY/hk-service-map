@@ -27,7 +27,8 @@ def get_override_table(xml_url):
 	if not os.path.exists('override.txt'):
 		print('Creating address override table')
 		with open('override.txt', 'w') as f:
-			f.write('See README for usage\nxml_url\t' + xml_url)
+			f.write('See README for usage\n[Traditional Chinese Name]\t[Proposed Address]'
+				'\t[Longtitude Offset]\t[Latitude Offset]\t[Registered Address]\nxml_url\t' + xml_url)
 	else:
 		print('Reading address override table')
 		with open('override.txt', 'r') as f:
@@ -38,7 +39,7 @@ def get_override_table(xml_url):
 				# ignore any entry key with lowercase character
 				if any(char.islower() for char in fields[0]):
 					continue
-				table[fields[0]] = fields[1].rstrip()
+				table[fields[0]] = '\t'.join(map(lambda field: field.strip(), fields[1:]))
 	return [xml_url, table]
 
 # take in XML root with specific tags and parse address
@@ -128,7 +129,7 @@ def parse_address(root, xmlns_url, override_table):
 			name = unit.find('xmlns:nameTChinese', xmlns).text
 			address = unit.find('xmlns:addressTChinese', xmlns).text
 			if not name in override_table:
-				override_f.write(f'\n{name}\t[NO OVERRIDE]\t{address}')
+				override_f.write(f'\n{name}\t[NO OVERRIDE]\t0\t0\t{address}')
 			unparsed_count += 1
 			print('Unable to parse ' + address)
 		else:
@@ -179,7 +180,7 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		if parsed_district not in longlat_district and name not in override_table:
 			print('District test failed for ' + address)
 			tcaddress = target_unit.find('xmlns:addressTChinese', xmlns).text
-			override_f.write(f'\n{name}\t[NO OVERRIDE]\t{tcaddress}')
+			override_f.write(f'\n{name}\t[NO OVERRIDE]\t0\t0\t{tcaddress}')
 			ratio[0] -= 1
 			ratio[1] += 1
 			continue
@@ -195,8 +196,8 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 	print(f'Query ratio is {ratio[0]}:{ratio[1]}')
 	override_f.close()
 	print('Requesting override table')
-	request_gen = (grequests.get(lookup_url + urllib.parse.quote(value) + '&i=' + urllib.parse.quote(key))
-		for key, value in override_table.items() if value != '[NO OVERRIDE]')
+	request_gen = (grequests.get(lookup_url + urllib.parse.quote(value.split('\t')[0]) + '&i=' + urllib.parse.quote(key))
+		for key, value in override_table.items() if value.split('\t')[0] != '[NO OVERRIDE]')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
 		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
 		# recovery prompt
@@ -214,8 +215,9 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		# distort slightly to reduce the chance of overlap
 		lon += random.randrange(-50, 50) / 1000000
 		lat += random.randrange(-50, 50) / 1000000
-		override_table[urllib.parse.unquote(response.request.url.split('&i=')[1])
-			+ ' LongLat'] = [round(lon, 6), round(lat, 6)]
+		table_key = urllib.parse.unquote(response.request.url.split('&i=')[1])
+		offset = override_table[table_key].split('\t')[1:3]
+		override_table[table_key + ' LongLat'] = [round(lon + float(offset[0]), 6), round(lat + float(offset[1]), 6)]
 	print('Applying override table')
 	unit_dict_list = xmljson.parker.data(root)[f'{{{xmlns_url}}}serviceUnits'][f'{{{xmlns_url}}}serviceUnit']
 	for index , unit in enumerate(unit_dict_list):

@@ -45,19 +45,21 @@ With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order 
 ### Use Case of override.txt
 `override.txt` is a tab separated value file of the following format, no empty lines are allowed:
 ```
-[Traditional Chinese Name]	[Proposed Address]	[Registered Address]
+[Traditional Chinese Name]	[Proposed Address]	[Longtitude Offset]	[Latitude Offset]	[Registered Address]
 ```
 The file can be use either for replacing incorrect coordinates from address query or locating unresolved units with nearby landmark.  
 It regenerates automatically if removed, and add units with unresolved address to the file.  
 After changing `override.txt`, `getinfo.py` needs to be rerun.  
 `[Traditional Chinese Name]` is used to identify the unit to modify.  
-`[Proposed Address]` is the target approximated address to query for the unit, if it is the string `[NO OVERRIDE]`, the entry will be ignored.  
+`[Proposed Address]` is the target approximated address to query for the unit, can be in any language that is recognised by HK-OGCIO API. If it is the string `[NO OVERRIDE]`, the entry will be ignored.  
+`[Longitude Offset]` is the longitude offset from the `[Proposed Address]`.  
+`[Latitude Offset]` is the latitude offset from the `[Proposed Address]`.  
 `[Registered Address]` is only for reference when the file is generated, and can be omitted.  
 
-Entries should not contain any lowercase letter, as they are treated as comments and will be ignored.
+Entries should not contain any lowercase letter before the first tab, as they are treated as comments and will be ignored.
 
 #### Comments
-Comments in `override.txt` can disregard the tab separated value format, but it must have at least one lowercase character.  
+Comments in `override.txt` can disregard the tab separated value format, but it must have at least one lowercase character before a tab character.  
 Comments should not be all lowercase snakecase as they are reserved as option key (e.g. `xml_url`).  
-Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`  
-Disallowed comment examples: `this`, `snake_case`, `UPPERCASE`, `UPPER_SNAKECASE`, `!@#$%^&*12345`
+Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`, `lower	UPPER`  
+Disallowed comment examples: `this`, `snake_case`, `UPPERCASE`, `UPPER_SNAKECASE`, `!@#$%^&*12345`, `UPPER	lower`
