@@ -26,12 +26,13 @@ def get_override_table(xml_url):
 	table = {}
 	if not os.path.exists('override.csv'):
 		print('Creating address override table')
-		with open('override.csv', 'w', encoding='utf-8') as f:
+		# UTF8 BOM for Excel
+		with open('override.csv', 'w', encoding='utf-8-sig') as f:
 			f.write('See README for usage\n[Traditional Chinese Name]\t[Proposed Address]'
 				'\t[Longtitude Offset]\t[Latitude Offset]\t[Registered Address]\nxml_url\t' + xml_url)
 	else:
 		print('Reading address override table')
-		with open('override.csv', 'r', encoding='utf-8') as f:
+		with open('override.csv', 'r', encoding='utf-8-sig') as f:
 			for line in f:
 				fields = line.split('\t')
 				if fields[0] == 'xml_url' and xml_url == '':
@@ -70,7 +71,7 @@ def parse_address(root, xmlns_url, override_table):
 		trim_index = 0
 		# the scope maybe large enough, but keep searching
 		weak_large = False
-		override_f = open('override.csv', 'a', encoding='utf-8')
+		override_f = open('override.csv', 'a', encoding='utf-8-sig')
 		for index in range(len(fields)):
 			# remove additional number
 			strip_num_regex = r'([A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)? ?AND ?)(?=[A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)?)'
@@ -156,7 +157,7 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 	# encode and request multiple URL simultaneously
 	request_gen = (grequests.get(lookup_url + urllib.parse.quote(address) + '&i=' + str(parsed_index[request_index]))
 		for request_index, address in enumerate(parsed_address))
-	override_f = open('override.csv', 'a', encoding='utf-8')
+	override_f = open('override.csv', 'a', encoding='utf-8-sig')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
 		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
 		# recovery prompt
@@ -226,7 +227,7 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		name_key = unit[f'{{{xmlns_url}}}nameTChinese']
 		if name_key + '\tLongLat' in override_table:
 			longlat_list[index] = override_table[name_key + '\tLongLat']
-			unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = override_table[name_key]
+			unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = override_table[name_key].split('\t')[0]
 	print('Reordering data by decreasing latitude')
 	lat_unit_map, longlat_list = zip(*sorted(zip(range(len(longlat_list)), longlat_list),
 		key=lambda unit: unit[1][1], reverse=True))
