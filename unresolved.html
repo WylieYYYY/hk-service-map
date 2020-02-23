@@ -29,11 +29,11 @@
 			}
 			var unresolved_list = [];
 			for (var i = 1; longlat[longlat.length - i][1] == -91; i++) {
-				unresolved_list[i] = document.createElement("div");
-				unresolved_list[i].className = "info bar";
-				if ("ontouchstart" in document.documentElement) unresolved_list[i].style = "font-size: 150%";
-				info_update(longlat.length - i, unresolved_list[i], 1.5);
-				document.body.appendChild(unresolved_list[i]);
+				unresolved_list[i - 1] = document.createElement("div");
+				unresolved_list[i - 1].className = "info bar";
+				if ("ontouchstart" in document.documentElement) unresolved_list[i - 1].style = "font-size: 150%";
+				info_update(longlat.length - i, unresolved_list[i - 1], 1.5);
+				document.body.appendChild(unresolved_list[i - 1]);
 				var divider = document.createElement("div");
 				divider.style = "height: 10px";
 				document.body.appendChild(divider);
@@ -42,7 +42,7 @@
 				title.innerText = localise["unresolvedDesc" + lang];
 				document.getElementById("back").title = localise["back" + lang];
 				for (var i = 1; i < unresolved_list.length; i++) {
-					info_update(longlat.length - i, unresolved_list[i], 1.5);
+					info_update(longlat.length - i, unresolved_list[i - 1], 1.5);
 				}
 			};
 		</script>

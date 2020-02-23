@@ -22,12 +22,17 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 4. Connect to the internet and run `getinfo.py` using `python3` (Heavy Internet traffic process)
 5. Wait for the script to finish and open either `openlayers.html` or `leaflet.html` depends on the preferred API.
 
+
+If you see that there are more entry in `unresolved.html` than in `override.csv`, that means the host is a bit slow and cannot handle 
+packets in time. Using `Ctrl+F`, search for two lines in `getinfo.py` containing `grequests.imap(request_gen, size=50)` and change the 
+size from `50` to some positive integer smaller than `50`.
+
 ### Tested URL
 [Basic Information and Service Quality Information of Residential Care Homes for the Elderly](https://elderlyinfo.swd.gov.hk/sites/ltc-swd/files/rche_rsp_list.xml)  
 [Basic Information and Service Quality Information of Residential Care Homes for Persons with Disabilities](https://rchdinfo.swd.gov.hk/sites/rchd-swd/files/rchd_rsp_list.xml)
 ### XML Template
 Target XML must follow this template for this map to work, `<ANY/>` means two node with any tag can be placed here. `count` attribute in tag means the tag can be repeated by `count` times, otherwise only once is allowed, other attributes are mandatory. `[abc here]` means insert the custom value denoted by `abc`. Tags can contain any attributes.
-```
+```xml
 <ANY>
 	<serviceUnits>
 		<serviceUnit count="Infinity">
@@ -41,7 +46,6 @@ Target XML must follow this template for this map to work, `<ANY/>` means two no
 </ANY>
 ```
 With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed. If empty string is used in localised names, the associated property is skipped from displaying.
-
 ### Use Case of override.csv
 `override.csv` is a tab separated value file of the following format, no empty lines are allowed:
 ```
@@ -57,7 +61,6 @@ After changing `override.csv`, `getinfo.py` needs to be rerun.
 `[Registered Address]` is only for reference when the file is generated, and can be omitted.  
 
 Entries should not contain any lowercase letter before the first tab, as they are treated as comments and will be ignored.
-
 #### Comments
 Comments in `override.csv` can disregard the tab separated value format, but it must have at least one lowercase character before a tab character.  
 Comments should not be all lowercase snakecase as they are reserved as option key (e.g. `xml_url`).  
