@@ -24,14 +24,14 @@ def request_service_xml(xml_url):
 # create or read address override table
 def get_override_table(xml_url):
 	table = {}
-	if not os.path.exists('override.txt'):
+	if not os.path.exists('override.csv'):
 		print('Creating address override table')
-		with open('override.txt', 'w') as f:
+		with open('override.csv', 'w', encoding='utf-8') as f:
 			f.write('See README for usage\n[Traditional Chinese Name]\t[Proposed Address]'
 				'\t[Longtitude Offset]\t[Latitude Offset]\t[Registered Address]\nxml_url\t' + xml_url)
 	else:
 		print('Reading address override table')
-		with open('override.txt', 'r') as f:
+		with open('override.csv', 'r', encoding='utf-8') as f:
 			for line in f:
 				fields = line.split('\t')
 				if fields[0] == 'xml_url' and xml_url == '':
@@ -70,7 +70,7 @@ def parse_address(root, xmlns_url, override_table):
 		trim_index = 0
 		# the scope maybe large enough, but keep searching
 		weak_large = False
-		override_f = open('override.txt', 'a')
+		override_f = open('override.csv', 'a', encoding='utf-8')
 		for index in range(len(fields)):
 			# remove additional number
 			strip_num_regex = r'([A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)? ?AND ?)(?=[A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)?)'
@@ -156,7 +156,7 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 	# encode and request multiple URL simultaneously
 	request_gen = (grequests.get(lookup_url + urllib.parse.quote(address) + '&i=' + str(parsed_index[request_index]))
 		for request_index, address in enumerate(parsed_address))
-	override_f = open('override.txt', 'a')
+	override_f = open('override.csv', 'a', encoding='utf-8')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
 		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
 		# recovery prompt
@@ -217,22 +217,22 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		lat += random.randrange(-50, 50) / 1000000
 		table_key = urllib.parse.unquote(response.request.url.split('&i=')[1])
 		offset = override_table[table_key].split('\t')[1:3]
-		override_table[table_key + ' LongLat'] = [round(lon + float(offset[0]), 6), round(lat + float(offset[1]), 6)]
+		override_table[table_key + '\tLongLat'] = [round(lon + float(offset[0]), 6), round(lat + float(offset[1]), 6)]
 	print('Applying override table')
 	unit_dict_list = xmljson.parker.data(root)[f'{{{xmlns_url}}}serviceUnits'][f'{{{xmlns_url}}}serviceUnit']
-	for index , unit in enumerate(unit_dict_list):
+	for index, unit in enumerate(unit_dict_list):
 		# define None for default address override
 		unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = None
 		name_key = unit[f'{{{xmlns_url}}}nameTChinese']
-		if name_key + ' LongLat' in override_table:
-			longlat_list[index] = override_table[name_key + ' LongLat']
+		if name_key + '\tLongLat' in override_table:
+			longlat_list[index] = override_table[name_key + '\tLongLat']
 			unit_dict_list[index][f'{{{xmlns_url}}}addressOverride'] = override_table[name_key]
 	print('Reordering data by decreasing latitude')
 	lat_unit_map, longlat_list = zip(*sorted(zip(range(len(longlat_list)), longlat_list),
 		key=lambda unit: unit[1][1], reverse=True))
 	# uses JS to avoid CORS
 	print('Writing langlat and dumping XML as JS to unitinfo.js')
-	with open('scripts/unitinfo.js', 'w') as f:
+	with open('scripts/unitinfo.js', 'w', encoding='utf-8') as f:
 		f.write('var longlat = ')
 		json.dump(longlat_list, f, ensure_ascii=False, separators=(',', ':'))
 		f.write(';\nvar unitinfo = [')
