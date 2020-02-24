@@ -64,5 +64,5 @@ Entries should not contain any lowercase letter before the first tab, as they ar
 #### Comments
 Comments in `override.csv` can disregard the tab separated value format, but it must have at least one lowercase character before a tab character.  
 Comments should not be all lowercase snakecase as they are reserved as option key (e.g. `xml_url`).  
-Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`, `lower	UPPER`  
+Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`, `lower not snake	UPPER`  
 Disallowed comment examples: `this`, `snake_case`, `UPPERCASE`, `UPPER_SNAKECASE`, `!@#$%^&*12345`, `UPPER	lower`
