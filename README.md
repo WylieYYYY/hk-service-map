@@ -33,7 +33,7 @@ size from `50` to some positive integer smaller than `50`.
 ### XML Template
 Target XML must follow this template for this map to work, `<ANY/>` means two node with any tag can be placed here. `count` attribute in tag means the tag can be repeated by `count` times, otherwise only once is allowed, other attributes are mandatory. `[abc here]` means insert the custom value denoted by `abc`. Tags can contain any attributes.
 ```xml
-<ANY>
+<ANY xmlns="ANY">
 	<serviceUnits>
 		<serviceUnit count="Infinity">
 			<nameTChinese/>
