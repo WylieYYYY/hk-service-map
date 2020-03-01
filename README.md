@@ -47,7 +47,7 @@ Target XML must follow this template for this map to work, `<ANY/>` means two no
 ```
 With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order to display localised names, if no entry is added to the file, XML tag name will be parsed and displayed. If empty string is used in localised names, the associated property is skipped from displaying.
 ### Use Case of override.csv
-`override.csv` is a tab separated value file of the following format, no empty lines are allowed:
+`override.csv` is a tab separated value file of the following format:
 ```
 [Traditional Chinese Name]	[Proposed Address]	[Longtitude Offset]	[Latitude Offset]	[Registered Address]
 ```

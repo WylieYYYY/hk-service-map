@@ -37,8 +37,8 @@ def get_override_table(xml_url, script_path):
 				fields = line.split('\t')
 				if fields[0] == 'xml_url' and xml_url == '':
 					xml_url = fields[1].rstrip()
-				# ignore any entry key with lowercase character
-				if any(char.islower() for char in fields[0]):
+				# ignore any entry key with lowercase character and empty line
+				if any(char.islower() for char in fields[0]) or fields[0] == '':
 					continue
 				table[fields[0]] = '\t'.join(map(lambda field: field.strip(), fields[1:]))
 	return [xml_url, table]
