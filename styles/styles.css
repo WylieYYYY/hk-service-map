@@ -35,3 +35,13 @@ body, .map {
 	white-space: -o-pre-wrap;    /* Opera 7 */
 	word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
+.center {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 50%;
+	height: 10%;
+	margin-left: -25%;
+	margin-top: -5%;
+	text-align: center;
+}

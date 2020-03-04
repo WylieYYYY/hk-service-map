@@ -16,16 +16,21 @@
 			onclick="lang_change(lang_callback)">🌐</button>
 		<button id="back" class="info" style="width: 40px; height: 40px; float:right" onclick="history.back()">↩️</button>
 		<div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
+		<div id="empty_placeholder" class="center" style="display: none"></div>
 		<script src="scripts/info.js"></script>
 		<script>
 			"use strict";
 			var title = document.getElementById("title");
+			var empty_placeholder = document.getElementById("empty_placeholder");
+			var back = document.getElementById("back");
 			title.innerText = localise["unresolvedDesc" + lang];
+			empty_placeholder.innerText = localise["emptyPlaceholder" + lang];
 			document.getElementById("back").title = localise["back" + lang];
 			if ("ontouchstart" in document.documentElement) {
-				title.style = "font-size: 200%";
+				title.style.fontSize = "200%";
+				empty_placeholder.style.fontSize = "200%";
 				document.getElementById("lang").style = "width: 60px; height: 60px; float: right; font-size: 200%";
-				document.getElementById("back").style = "width: 60px; height: 60px; float: right; font-size: 200%";
+				back.style = "width: 60px; height: 60px; float: right; font-size: 200%";
 			}
 			var unresolved_list = [];
 			for (var i = 1; longlat[longlat.length - i][1] == -91; i++) {
@@ -38,10 +43,14 @@
 				divider.style = "height: 10px";
 				document.body.appendChild(divider);
 			}
+			if (unresolved_list.length == 0) {
+				empty_placeholder.style = "";
+			}
 			var lang_callback = function() {
 				title.innerText = localise["unresolvedDesc" + lang];
-				document.getElementById("back").title = localise["back" + lang];
-				for (var i = 1; i < unresolved_list.length; i++) {
+				empty_placeholder.innerText = localise["emptyPlaceholder" + lang];
+				back.title = localise["back" + lang];
+				for (var i = 1; i <= unresolved_list.length; i++) {
 					info_update(longlat.length - i, unresolved_list[i - 1], 1.5);
 				}
 			};
