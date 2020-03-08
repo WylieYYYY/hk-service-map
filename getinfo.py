@@ -48,6 +48,7 @@ def parse_address(root, xmlns_url, override_table, script_path):
 	xmlns = {'xmlns': xmlns_url}
 	parsed_index, parsed_address = ([] for i in range(2))
 	unparsed_count = 0
+	override_f = open(f'{script_path}/override.csv', 'a', encoding='utf-8-sig')
 	for unit_index, unit in enumerate(root.iter(f'{{{xmlns_url}}}serviceUnit')):
 		location = unit.find('xmlns:addressEnglish', xmlns).text.upper()
 		# replace plate number list and stray double quote
@@ -71,7 +72,6 @@ def parse_address(root, xmlns_url, override_table, script_path):
 		trim_index = 0
 		# the scope maybe large enough, but keep searching
 		weak_large = False
-		override_f = open(f'{script_path}/override.csv', 'a', encoding='utf-8-sig')
 		for index in range(len(fields)):
 			# remove additional number
 			strip_num_regex = r'([A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)? ?AND ?)(?=[A-Z]{0,2}[0-9]+[A-Z]{0,2}(/F)?)'
@@ -80,11 +80,11 @@ def parse_address(root, xmlns_url, override_table, script_path):
 			# large enough scope, accept all
 			if not detail:
 				continue
-			# do not attemp to parse address with lot number
+			# do not attempt to parse address with lot number
 			if re.search(r'(( |^)LOT ?[0-9]+|( |^)D\.?D\.? ?[0-9]+)', fields[index]):
 				break
 			# remove all floor number but keep house info
-			while re.search(r'(G|[0-9])\/F', fields[index], re.I):
+			while re.search(r'(G|[0-9])\/F', fields[index]):
 				replaced = re.subn(r'(.*(G|[0-9])\/F (OF ?)?)(?=\S+)', '', fields[index])
 				if replaced[1]:
 					fields[index] = replaced[0].strip()
@@ -101,7 +101,7 @@ def parse_address(root, xmlns_url, override_table, script_path):
 				r'|PATH|ROAD|RD|STREET|TERRACE|TSUEN|VILLA(GE)?' + rural_road + r')')
 			strip_num_regex = r'^.*[^0-9]+(?=[0-9]+)'
 			# house number is put alongside street name
-			if re.search(num_regex + road_regex, fields[index], re.I):
+			if re.search(num_regex + road_regex, fields[index]):
 				fields[index] = re.sub(strip_num_regex, '', fields[index])
 				trim_index = index
 				detail = False
@@ -259,4 +259,4 @@ print('Parsing address')
 result_list = parse_address(service_root, xmlns_url, override_table, script_path)
 print('Requesting for geospatial information')
 batch_req(result_list[0], result_list[1], service_root, xmlns_url, result_list[2], override_table, script_path)
-print('Succesfully execute getlonglat.py')
+print('Succesfully execute getinfo.py')
