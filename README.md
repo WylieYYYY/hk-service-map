@@ -22,6 +22,15 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 4. Connect to the internet and run `getinfo.py` using `python3` (Heavy Internet traffic process)
 5. Wait for the script to finish and open either `openlayers.html` or `leaflet.html` depends on the preferred API.
 
+Remove the following files before starting a public server:
+- .git
+- .gitignore
+- getinfo.py
+- README.md
+- requirements.txt
+- screenshot-hover.png
+- screenshot-info.png
+- screenshot-unresolved.png
 
 If you see that there are more entry in `unresolved.html` than in `override.csv`, that means the host is a bit slow and cannot handle 
 packets in time. Using `Ctrl+F`, search for two lines in `getinfo.py` containing `grequests.imap(request_gen, size=50)` and change the 
@@ -51,7 +60,7 @@ With `ANY` tag in `serviceUnit`, `scripts/localise.js` must be changed in order 
 ```
 [Traditional Chinese Name]	[Proposed Address]	[Longtitude Offset]	[Latitude Offset]	[Registered Address]
 ```
-The file can be use either for replacing incorrect coordinates from address query or locating unresolved units with nearby landmark.  
+The file can be used either for replacing incorrect coordinates from address query or locating unresolved units with nearby landmark.  
 It regenerates automatically if removed, and add units with unresolved address to the file.  
 After changing `override.csv`, `getinfo.py` needs to be rerun.  
 `[Traditional Chinese Name]` is used to identify the unit to modify.  

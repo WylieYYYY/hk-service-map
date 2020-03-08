@@ -145,6 +145,28 @@ def parse_address(root, xmlns_url, override_table, script_path):
 	# return all required data for traversing XML
 	return [parsed_index, parsed_address, [len(parsed_address), unparsed_count]]
 
+address_prefix = 'SuggestedAddress/Address/PremisesAddress/'
+# process longitude and latitude from XML response
+def longlat_process(response):
+	address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
+	# recovery prompt
+	if not response:
+		print('Request failed for ' + address + ', trying again')
+		response = requests.get(response.request.url)
+		if not response:
+			print('Giving up, try diagnose network and rerun later')
+			sys.exit()
+	print('Got response for ' + address)
+	# traverse into the tree
+	longlat_root = xml.etree.ElementTree.fromstring(response.text)
+	lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
+	lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
+	# distort slightly to reduce the chance of overlap
+	lon += random.randrange(-50, 50) / 1000000
+	lat += random.randrange(-50, 50) / 1000000
+	return [address, longlat_root, lon, lat]
+
+
 # take in valid address list and perform API request
 def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_table, script_path):
 	lookup_url = 'https://www.als.ogcio.gov.hk/lookup?n=1&q='
@@ -159,22 +181,11 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		for request_index, address in enumerate(parsed_address))
 	override_f = open(f'{script_path}/override.csv', 'a', encoding='utf-8-sig')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
-		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
-		# recovery prompt
-		if not response:
-			print('Request failed for ' + address + ', trying again')
-			response = requests.get(response.request.url)
-			if not response:
-				print('Giving up, try diagnose network and rerun later')
-				sys.exit()
-		print('Got response for ' + address)
-		# traverse into the tree
-		longlat_root = xml.etree.ElementTree.fromstring(response.text)
+		address, longlat_root, lon, lat = longlat_process(response)
 		# check district correctness
 		unit_index = int(response.request.url.split('&i=')[1])
 		target_unit = unit_list[unit_index]
 		parsed_district = target_unit.find('xmlns:districtEnglish', xmlns).text.upper().replace(' AND ', ' & ')
-		address_prefix = 'SuggestedAddress/Address/PremisesAddress/'
 		longlat_district = longlat_root.find(address_prefix + 'EngPremisesAddress/EngDistrict/DcDistrict').text
 		name = target_unit.find('xmlns:nameTChinese', xmlns).text.upper()
 		# append to override table if district test failed and no entry exists
@@ -185,11 +196,6 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 			ratio[0] -= 1
 			ratio[1] += 1
 			continue
-		lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
-		lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
-		# distort slightly to reduce the chance of overlap
-		lon += random.randrange(-50, 50) / 1000000
-		lat += random.randrange(-50, 50) / 1000000
 		longlat_list[unit_index] = [round(lon, 6), round(lat, 6)]
 		# scale used time to estimate time
 		estimate_sec = (len(parsed_index) / (time_index + 1) - 1) * (time.time() - start_time)
@@ -200,22 +206,7 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 	request_gen = (grequests.get(lookup_url + urllib.parse.quote(value.split('\t')[0]) + '&i=' + urllib.parse.quote(key))
 		for key, value in override_table.items() if value.split('\t')[0] != '[NO OVERRIDE]')
 	for time_index, response in enumerate(grequests.imap(request_gen, size=50)):
-		address = urllib.parse.unquote(response.request.url.split('&q=')[1].split('&i=')[0])
-		# recovery prompt
-		if not response:
-			print('Request failed for ' + address + ', trying again')
-			response = requests.get(response.request.url)
-			if not response:
-				print('Giving up, try diagnose network and rerun later')
-				sys.exit()
-		print('Got response for ' + address)
-		longlat_root = xml.etree.ElementTree.fromstring(response.text)
-		address_prefix = 'SuggestedAddress/Address/PremisesAddress/'
-		lon = float(longlat_root.find(address_prefix + 'GeospatialInformation/Longitude').text)
-		lat = float(longlat_root.find(address_prefix + 'GeospatialInformation/Latitude').text)
-		# distort slightly to reduce the chance of overlap
-		lon += random.randrange(-50, 50) / 1000000
-		lat += random.randrange(-50, 50) / 1000000
+		_, _, lon, lat = longlat_process(response)
 		table_key = urllib.parse.unquote(response.request.url.split('&i=')[1])
 		offset = override_table[table_key].split('\t')[1:3]
 		override_table[table_key + '\tLongLat'] = [round(lon + float(offset[0]), 6), round(lat + float(offset[1]), 6)]
