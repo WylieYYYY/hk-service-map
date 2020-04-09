@@ -232,7 +232,8 @@ def batch_req(parsed_index, parsed_address, root, xmlns_url, ratio, override_tab
 		json.dump(xml_key, f, ensure_ascii=False, separators=(',', ':'))
 		for unit_index in lat_unit_map:
 			f.write(',')
-			json.dump(list(unit_dict_list[unit_index].values()), f, ensure_ascii=False, separators=(',', ':'))
+			json.dump(list(map(lambda v: None if v is None else str(v), unit_dict_list[unit_index].values())),
+				f, ensure_ascii=False, separators=(',', ':'))
 		f.write('];')
 	print('Finished unitinfo.js')
 
