@@ -32,10 +32,6 @@ Remove the following files before starting a public server:
 - screenshot-info.png
 - screenshot-unresolved.png
 
-If you see that there are more entry in `unresolved.html` than in `override.csv`, that means the host is a bit slow and cannot handle 
-packets in time. Using `Ctrl+F`, search for two lines in `getinfo.py` containing `grequests.imap(request_gen, size=50)` and change the 
-size from `50` to some positive integer smaller than `50`.
-
 ### Tested URL
 [Basic Information and Service Quality Information of Residential Care Homes for the Elderly](https://elderlyinfo.swd.gov.hk/sites/ltc-swd/files/rche_rsp_list.xml)  
 [Basic Information and Service Quality Information of Residential Care Homes for Persons with Disabilities](https://rchdinfo.swd.gov.hk/sites/rchd-swd/files/rchd_rsp_list.xml)
@@ -75,3 +71,8 @@ Comments in `override.csv` can disregard the tab separated value format, but it 
 Comments should not be all lowercase snakecase as they are reserved as option key (e.g. `xml_url`).  
 Allowed comment examples: `This`, `with space`, `This with space`, `Mixed_snakecase`, `lower not snake	UPPER`  
 Disallowed comment examples: `this`, `snake_case`, `UPPERCASE`, `UPPER_SNAKECASE`, `!@#$%^&*12345`, `UPPER	lower`
+#### Generation options in override.csv
+Generation options is a key value pair separated by tab, like this: `[Key]	[Value]`
+Keys are in all lowercase snakecase, this is why comments have the naming restrictions.
+`xml_url` is the default URL used when no URL is provided at generation.
+`batch_size` is the maximum amount of parallel request at a time for geospatial information (default: 50).
