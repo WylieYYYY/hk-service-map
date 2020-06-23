@@ -16,6 +16,8 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 - Address correction with `override.csv`;
 
 ### Setup
+> Check out 'getinfo-csharp' for a more featured and supported version of 'getinfo' script
+
 1. Download the source code here.
 2. Install `python3` and `pip` from repositories or build from source.
 3. Using `pip`, install `grequests` and `xmljson`
