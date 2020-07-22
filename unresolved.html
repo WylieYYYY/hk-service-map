@@ -13,7 +13,10 @@
 	<body>
 		<button id="lang" class="info" title="Change language" style="width: 40px; height: 40px; float:right"
 			onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-			onclick="lang_change(lang_callback)">🌐</button>
+			onclick="lang_change(lang_callback)"><!--
+				--><span id="lang_name"></span><!--
+				--><img id="lang_icon" src="styles/images/globe.png" style="width: 25px; height: 25px"/><!--
+		--></button>
 		<button id="back" class="info" style="width: 40px; height: 40px; float:right" onclick="history.back()">↩️</button>
 		<div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
 		<div id="empty_placeholder" class="center" style="display: none"></div>

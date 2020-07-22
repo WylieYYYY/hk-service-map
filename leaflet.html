@@ -28,8 +28,13 @@
 		<div id="lang_unresolved_container" class="leaflet-bar leaflet-control-layers">
 			<a id="lang" href="#" title="Change language" role="button" aria-label="Change language"
 				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-				onclick="lang_change(lang_callback)">🌐</a>
-			<a id="unresolved" href="unresolved.html">🚧</a>
+				onclick="lang_change(lang_callback)">
+					<span id="lang_name"></span>
+					<img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
+			</a>
+			<a id="unresolved" href="unresolved.html">
+				<img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
+			</a>
 		</div>
 		<script src="scripts/info.js"></script>
 		<script>

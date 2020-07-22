@@ -25,9 +25,14 @@
 			style="position: absolute; top: 10%; left: .5em">
 			<button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
 				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-				onclick="lang_change(lang_callback)">🌐</button>
+				onclick="lang_change(lang_callback)">
+					<span id="lang_name"></span>
+					<img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
+			</button>
 			<button id="unresolved" style="color: transparent; text-shadow: 0 0 0 white"
-				onclick="location.href = 'unresolved.html'">🚧</button>
+				onclick="location.href = 'unresolved.html'">
+					<img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
+			</button>
 		</div>
 		<script src="scripts/info.js"></script>
 		<script>
