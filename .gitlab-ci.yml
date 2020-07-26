@@ -1,0 +1,10 @@
+image: node:alpine
+
+stages:
+    - lint
+
+eslint:
+    stage: lint
+    script:
+        - npm i
+        - npm test

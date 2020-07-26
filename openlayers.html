@@ -1,180 +1,194 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-	<head>
-		<meta charset="utf-8">
-		<meta name="theme-color" content="#82e000">
-		<title>HK Service Map</title>
-		<link rel="manifest" href="manifest.json"/>
-		<link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
-		<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/css/ol.css"/>
-		<link rel="stylesheet" type="text/css" href="styles/styles.css"/>
-		<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
-		<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/build/ol.js"></script>
-		<script src="scripts/localise.js" charset="UTF-8"></script>
-		<script src="scripts/unitinfo.js" charset="UTF-8"></script>
-	</head>
-	<body>
-		<div id="map" class="map"></div>
-		<pre id="info" class="status bar"/>
-		<div id="zoom_container" class="ol-unselectable ol-control"
-			style="position: absolute; top: .5em; left: .5em">
-			<button id="zoom_in" onclick="zoom_by_delta(1)">+</button>
-			<button id="zoom_out" onclick="zoom_by_delta(-1)">−</button>
-		</div>
-		<div id="lang_unresolved_container" class="ol-unselectable ol-control"
-			style="position: absolute; top: 10%; left: .5em">
-			<button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
-				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-				onclick="lang_change(lang_callback)">
-					<span id="lang_name"></span>
-					<img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
-			</button>
-			<button id="unresolved" style="color: transparent; text-shadow: 0 0 0 white"
-				onclick="location.href = 'unresolved.html'">
-					<img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
-			</button>
-		</div>
-		<script src="scripts/info.js"></script>
-		<script>
-			"use strict";
-			document.getElementById("map").style.height = window.innerHeight + "px";
-			var zoom_in = document.getElementById("zoom_in");
-			zoom_in.title = localise["zoomIn" + lang];
-			var zoom_out = document.getElementById("zoom_out");
-			zoom_out.title = localise["zoomOut" + lang];
-			var unresolved = document.getElementById("unresolved");
-			unresolved.title = localise["unresolvedList" + lang];
-			var info = document.getElementById("info");
-			var marker_list = [];
-			var selected = 0;
-			for (var i = 0; i < longlat.length; i++) {
-				if (longlat[i][1] == -91) break;
-				var marker = new ol.Feature({
-					geometry: new ol.geom.Point(ol.proj.fromLonLat(longlat[i])),
-					unit_index: i + 1
-				});
-				marker_list.push(marker);
-			}
-			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
-			var marker_scale = 0.5;
-			if ("ontouchstart" in document.documentElement) {
-				marker_scale = 1;
-				info.style = "font-size: 200%";
-				[zoom_in, zoom_out, document.getElementById("lang"), unresolved].forEach(function(element) {
-					element.style = "width: 2.75em; height: 2.75em; font-size: 300%";
-				});
-				lang_unresolved_container.style.top = "20%";
-			}
-			var marker_style = new ol.style.Style({
-				image: new ol.style.Icon({
-					anchor: [0.5, 1],
-					src: "styles/images/marker.png",
-					scale: marker_scale
-				})
-			});
-			var selected_style = new ol.style.Style({
-				image: new ol.style.Icon({
-					anchor: [0.5, 1],
-					src: "styles/images/selected.png",
-					scale: marker_scale
-				})
-			});
-			var vector_layer = new ol.layer.Vector({
-				source: new ol.source.Vector({
-					features: marker_list
-				}),
-				style: function(feature) {
-					if (selected == feature.getProperties()["unit_index"]) return [selected_style];
-					return [marker_style];
-				}
-			});
-			var zoom_animation_duration = 250;
-			var zoom_by_delta = function(delta) {
-				var view = map.getView();
-				if (!view) return;
-				var current_zoom = view.getZoom();
-				if (current_zoom != undefined) {
-					var new_zoom = view.getConstrainedZoom(current_zoom + delta);
-					if (zoom_animation_duration > 0) {
-						if (view.getAnimating()) view.cancelAnimations();
-						view.animate({
-							zoom: new_zoom,
-							duration: zoom_animation_duration,
-							easing: ol.easing.easeOut
-						});
-					}
-					else view.setZoom(new_zoom);
-				}
-			};
-			var zoom_container = document.getElementById("zoom_container");
-			var zoom_control = function() {
-				ol.control.Control.call(this, {
-					element: zoom_container
-				});
-			};
-			zoom_control.prototype = Object.create(ol.control.Control.prototype);
-			zoom_control.prototype.constructor = zoom_control;
-			var lang_unresolved_control = function() {
-				ol.control.Control.call(this, {
-					element: lang_unresolved_container
-				});
-			};
-			lang_unresolved_control.prototype = Object.create(ol.control.Control.prototype);
-			lang_unresolved_control.prototype.constructor = lang_unresolved_control;
-			var map = new ol.Map({
-				target: "map",
-				controls: [
-					new ol.control.Attribution(),
-					new zoom_control(),
-					new lang_unresolved_control()
-				],
-				layers: [
-					new ol.layer.Tile({
-						source: new ol.source.OSM()
-					}),
-					vector_layer
-				],
-				view: new ol.View({
-					center: ol.proj.fromLonLat([114.17, 22.35]),
-					zoom: 11,
-					maxZoom: 16 + marker_scale * 4
-				})
-			});
-			map.on("pointermove", function(evt) {
-				if (evt.dragging) return;
-				var pixel = map.getEventPixel(evt.originalEvent);
-				var features = map.getFeaturesAtPixel(pixel);
-				if (features.length == 0) {
-					map.getTargetElement().style.cursor = "";
-					if (selected == 0) {
-						info.innerText = "";
-						info.style.opacity = 0;
-					}
-					return;
-				}
-				if (selected == 0) display_status(features[0].getProperties()["unit_index"]);
-				info.style.opacity = 1;
-				map.getTargetElement().style.cursor = "pointer";
-			});
-			map.on("click", function(evt) {
-				var pixel = map.getEventPixel(evt.originalEvent);
-				var features = map.getFeaturesAtPixel(pixel);
-				if (features.length > 0) {
-					if (selected != 0 && selected != features[0].getProperties()["unit_index"]) selected = 0;
-					info_switch(features[0].getProperties()["unit_index"]);
-					vector_layer.getSource().changed();
-				}
-			});
-			var lang_callback = function() {
-				if (selected != 0) {
-					info_update(selected, info, marker_scale);
-					info.className += " spaced-dock";
-				}
-				zoom_in.title = localise["zoomIn" + lang];
-				zoom_out.title = localise["zoomOut" + lang];
-				unresolved.title = localise["unresolvedList" + lang];
-			};
-		</script>
-		<script src="scripts/lang.js"></script>
-	</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#82e000">
+    <title>HK Service Map</title>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/css/ol.css"/>
+    <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/build/ol.js"></script>
+    <script src="scripts/localise.js" charset="UTF-8"></script>
+    <script src="scripts/unitinfo.js" charset="UTF-8"></script>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <pre id="info" class="status bar"/>
+    <div id="zoom_container" class="ol-unselectable ol-control"
+      style="position: absolute; top: .5em; left: .5em">
+      <button id="zoom_in" onclick="zoomByDelta(1)">+</button>
+      <button id="zoom_out" onclick="zoomByDelta(-1)">−</button>
+    </div>
+    <div id="lang_unresolved_container" class="ol-unselectable ol-control"
+      style="position: absolute; top: 10%; left: .5em">
+      <button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
+        onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
+        onclick="langChange(langCallback)">
+          <span id="lang_name"></span>
+          <img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
+      </button>
+      <button id="unresolved" style="color: transparent; text-shadow: 0 0 0 white"
+        onclick="location.href = 'unresolved.html'">
+          <img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
+      </button>
+    </div>
+    <script src="scripts/info.js"></script>
+    <script>
+      /* exported langCallback, zoomByDelta */
+      /* global displayStatus, infoSwitch, infoUpdate, ol, lang, localise, longlat */
+      'use strict';
+
+      document.getElementById('map').style.height = window.innerHeight + 'px';
+      var zoomIn = document.getElementById('zoom_in');
+      zoomIn.title = localise['zoomIn' + lang];
+      var zoomOut = document.getElementById('zoom_out');
+      zoomOut.title = localise['zoomOut' + lang];
+      var unresolved = document.getElementById('unresolved');
+      unresolved.title = localise['unresolvedList' + lang];
+      var info = document.getElementById('info');
+      var markerList = [];
+      var selected = 0;
+      for (var i = 0; i < longlat.length; i++) {
+        if (longlat[i][1] == -91) break;
+        var marker = new ol.Feature({
+          geometry: new ol.geom.Point(ol.proj.fromLonLat(longlat[i])),
+          unitIndex: i + 1
+        });
+        markerList.push(marker);
+      }
+      var langUnresolvedContainer =
+          document.getElementById('lang_unresolved_container');
+      var markerScale = 0.5;
+      if ('ontouchstart' in document.documentElement) {
+        markerScale = 1;
+        info.style = 'font-size: 200%';
+        [zoomIn, zoomOut, document.getElementById('lang'),
+          unresolved].forEach(function(element) {
+          element.style = 'width: 2.75em; height: 2.75em; font-size: 300%';
+        });
+        langUnresolvedContainer.style.top = '20%';
+      }
+      var markerStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+          anchor: [0.5, 1],
+          src: 'styles/images/marker.png',
+          scale: markerScale
+        })
+      });
+      var selectedStyle = new ol.style.Style({
+        image: new ol.style.Icon({
+          anchor: [0.5, 1],
+          src: 'styles/images/selected.png',
+          scale: markerScale
+        })
+      });
+      var vectorLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({
+          features: markerList
+        }),
+        style: function(feature) {
+          if (selected == feature.getProperties().unitIndex) return [selectedStyle];
+          return [markerStyle];
+        }
+      });
+      var zoomAnimationDuration = 250;
+
+      /**
+       * Zooms map by incrementing or decrementing current zoom level.
+       * @param {number} delta - Value to be added to the current zoom level.
+       */
+      function zoomByDelta(delta) {
+        var view = map.getView();
+        if (!view) return;
+        var currentZoom = view.getZoom();
+        if (currentZoom != undefined) {
+          var newZoom = view.getConstrainedZoom(currentZoom + delta);
+          if (zoomAnimationDuration > 0) {
+            if (view.getAnimating()) view.cancelAnimations();
+            view.animate({
+              zoom: newZoom,
+              duration: zoomAnimationDuration,
+              easing: ol.easing.easeOut
+            });
+          } else view.setZoom(newZoom);
+        }
+      }
+      var zoomContainer = document.getElementById('zoom_container');
+      var ZoomControl = function() {
+        ol.control.Control.call(this, {
+          element: zoomContainer
+        });
+      };
+      ZoomControl.prototype = Object.create(ol.control.Control.prototype);
+      ZoomControl.prototype.constructor = ZoomControl;
+      var LangUnresolvedControl = function() {
+        ol.control.Control.call(this, {
+          element: langUnresolvedContainer
+        });
+      };
+      LangUnresolvedControl.prototype = Object.create(ol.control.Control.prototype);
+      LangUnresolvedControl.prototype.constructor = LangUnresolvedControl;
+      var map = new ol.Map({
+        target: 'map',
+        controls: [
+          new ol.control.Attribution(),
+          new ZoomControl(),
+          new LangUnresolvedControl()
+        ],
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          }),
+          vectorLayer
+        ],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([114.17, 22.35]),
+          zoom: 11,
+          maxZoom: 16 + markerScale * 4
+        })
+      });
+      map.on('pointermove', function(evt) {
+        if (evt.dragging) return;
+        var pixel = map.getEventPixel(evt.originalEvent);
+        var features = map.getFeaturesAtPixel(pixel);
+        if (features.length == 0) {
+          map.getTargetElement().style.cursor = '';
+          if (selected == 0) {
+            info.innerText = '';
+            info.style.opacity = 0;
+          }
+          return;
+        }
+        if (selected == 0) displayStatus(features[0].getProperties().unitIndex);
+        info.style.opacity = 1;
+        map.getTargetElement().style.cursor = 'pointer';
+      });
+      map.on('click', function(evt) {
+        var pixel = map.getEventPixel(evt.originalEvent);
+        var features = map.getFeaturesAtPixel(pixel);
+        if (features.length > 0) {
+          if (selected != 0 && selected != features[0]
+              .getProperties().unitIndex) {
+            selected = 0;
+          }
+          infoSwitch(features[0].getProperties().unitIndex);
+          vectorLayer.getSource().changed();
+        }
+      });
+
+      /** Callback to change all elements' language */
+      function langCallback() {
+        if (selected != 0) {
+          infoUpdate(selected, info, markerScale);
+          info.className += ' spaced-dock';
+        }
+        zoomIn.title = localise['zoomIn' + lang];
+        zoomOut.title = localise['zoomOut' + lang];
+        unresolved.title = localise['unresolvedList' + lang];
+      }
+    </script>
+    <script src="scripts/lang.js"></script>
+  </body>
 </html>

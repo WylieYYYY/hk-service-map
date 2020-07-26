@@ -1,63 +1,69 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-	<head>
-		<meta charset="utf-8">
-		<meta name="theme-color" content="#82e000">
-		<title>HK Service Map</title>
-		<link rel="manifest" href="manifest.json"/>
-		<link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
-		<link rel="stylesheet" type="text/css" href="styles/styles.css"/>
-		<script src="scripts/localise.js" charset="UTF-8"></script>
-		<script src="scripts/unitinfo.js" charset="UTF-8"></script>
-	</head>
-	<body>
-		<button id="lang" class="info" title="Change language" style="width: 40px; height: 40px; float:right"
-			onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-			onclick="lang_change(lang_callback)"><!--
-				--><span id="lang_name"></span><!--
-				--><img id="lang_icon" src="styles/images/globe.png" style="width: 25px; height: 25px"/><!--
-		--></button>
-		<button id="back" class="info" style="width: 40px; height: 40px; float:right" onclick="history.back()">↩️</button>
-		<div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
-		<div id="empty_placeholder" class="center" style="display: none"></div>
-		<script src="scripts/info.js"></script>
-		<script>
-			"use strict";
-			var title = document.getElementById("title");
-			var empty_placeholder = document.getElementById("empty_placeholder");
-			var back = document.getElementById("back");
-			title.innerText = localise["unresolvedDesc" + lang];
-			empty_placeholder.innerText = localise["emptyPlaceholder" + lang];
-			document.getElementById("back").title = localise["back" + lang];
-			if ("ontouchstart" in document.documentElement) {
-				title.style.fontSize = "200%";
-				empty_placeholder.style.fontSize = "200%";
-				document.getElementById("lang").style = "width: 60px; height: 60px; float: right; font-size: 200%";
-				back.style = "width: 60px; height: 60px; float: right; font-size: 200%";
-			}
-			var unresolved_list = [];
-			for (var i = 1; longlat[longlat.length - i][1] == -91; i++) {
-				unresolved_list[i - 1] = document.createElement("div");
-				unresolved_list[i - 1].className = "info bar";
-				if ("ontouchstart" in document.documentElement) unresolved_list[i - 1].style = "font-size: 150%";
-				info_update(longlat.length - i, unresolved_list[i - 1], 1.5);
-				document.body.appendChild(unresolved_list[i - 1]);
-				var divider = document.createElement("div");
-				divider.style = "height: 10px";
-				document.body.appendChild(divider);
-			}
-			if (unresolved_list.length == 0) {
-				empty_placeholder.style = "";
-			}
-			var lang_callback = function() {
-				title.innerText = localise["unresolvedDesc" + lang];
-				empty_placeholder.innerText = localise["emptyPlaceholder" + lang];
-				back.title = localise["back" + lang];
-				for (var i = 1; i <= unresolved_list.length; i++) {
-					info_update(longlat.length - i, unresolved_list[i - 1], 1.5);
-				}
-			};
-		</script>
-		<script src="scripts/lang.js"></script>
-	</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#82e000">
+    <title>HK Service Map</title>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+    <script src="scripts/localise.js" charset="UTF-8"></script>
+    <script src="scripts/unitinfo.js" charset="UTF-8"></script>
+  </head>
+  <body>
+    <button id="lang" class="info" title="Change language" style="width: 40px; height: 40px; float:right"
+      onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
+      onclick="langChange(langCallback)"><!--
+        --><span id="lang_name"></span><!--
+        --><img id="lang_icon" src="styles/images/globe.png" style="width: 25px; height: 25px"/><!--
+    --></button>
+    <button id="back" class="info" style="width: 40px; height: 40px; float:right" onclick="history.back()">↩️</button>
+    <div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
+    <div id="empty_placeholder" class="center" style="display: none"></div>
+    <script src="scripts/info.js"></script>
+    <script>
+      /* exported langCallback */
+      /* global infoUpdate, lang, localise, longlat */
+      'use strict';
+
+      var title = document.getElementById('title');
+      var emptyPlaceholder = document.getElementById('empty_placeholder');
+      var back = document.getElementById('back');
+      title.innerText = localise['unresolvedDesc' + lang];
+      emptyPlaceholder.innerText = localise['emptyPlaceholder' + lang];
+      document.getElementById('back').title = localise['back' + lang];
+      if ('ontouchstart' in document.documentElement) {
+        title.style.fontSize = '200%';
+        emptyPlaceholder.style.fontSize = '200%';
+        document.getElementById('lang').style =
+            'width: 60px; height: 60px; float: right; font-size: 200%';
+        back.style = 'width: 60px; height: 60px; float: right; font-size: 200%';
+      }
+      var unresolvedList = [];
+      for (var i = 1; longlat[longlat.length - i][1] == -91; i++) {
+        unresolvedList[i - 1] = document.createElement('div');
+        unresolvedList[i - 1].className = 'info bar';
+        if ('ontouchstart' in document.documentElement) {
+          unresolvedList[i - 1].style = 'font-size: 150%';
+        }
+        infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.5);
+        document.body.appendChild(unresolvedList[i - 1]);
+        var divider = document.createElement('div');
+        divider.style = 'height: 10px';
+        document.body.appendChild(divider);
+      }
+      if (unresolvedList.length == 0) emptyPlaceholder.style = '';
+
+      /** Callback to change all elements' language */
+      function langCallback() {
+        title.innerText = localise['unresolvedDesc' + lang];
+        emptyPlaceholder.innerText = localise['emptyPlaceholder' + lang];
+        back.title = localise['back' + lang];
+        for (var i = 1; i <= unresolvedList.length; i++) {
+          infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.5);
+        }
+      }
+    </script>
+    <script src="scripts/lang.js"></script>
+  </body>
 </html>

@@ -1,156 +1,183 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-	<head>
-		<meta charset="utf-8">
-		<meta name="theme-color" content="#82e000">
-		<title>HK Service Map</title>
-		<link rel="manifest" href="manifest.json"/>
-		<link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
-		<link rel="stylesheet" type="text/css" href="styles/styles.css"/>
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-			integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-			crossorigin=""/>
-		<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-			integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-			crossorigin=""></script>
-		<script src="scripts/localise.js" charset="UTF-8"></script>
-		<script src="scripts/unitinfo.js" charset="UTF-8"></script>
-	</head>
-	<body>
-		<div id="map" class="map"></div>
-		<pre id="info" class="status bar"/>
-		<div id="zoom_container" class="leaflet-control-zoom leaflet-bar leaflet-control">
-			<a id="zoom_in" class="leaflet-control-zoom-in" href="#"
-				title="Zoom in" role="button" aria-label="Zoom in">+</a>
-			<a id="zoom_out" class="leaflet-control-zoom-out" href="#"
-				title="Zoom out" role="button" aria-label="Zoom out">−</a>
-		</div>
-		<div id="lang_unresolved_container" class="leaflet-bar leaflet-control-layers">
-			<a id="lang" href="#" title="Change language" role="button" aria-label="Change language"
-				onmouseenter="lang_mouse_over(true)" onmouseleave="lang_mouse_over(false)"
-				onclick="lang_change(lang_callback)">
-					<span id="lang_name"></span>
-					<img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
-			</a>
-			<a id="unresolved" href="unresolved.html">
-				<img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
-			</a>
-		</div>
-		<script src="scripts/info.js"></script>
-		<script>
-			"use strict";
-			document.getElementById("map").style.height = window.innerHeight + "px";
-			var zoom_in = document.getElementById("zoom_in");
-			zoom_in.title = localise["zoomIn" + lang];
-			var zoom_out = document.getElementById("zoom_out");
-			zoom_out.title = localise["zoomOut" + lang];
-			var unresolved = document.getElementById("unresolved");
-			unresolved.title = localise["unresolvedList" + lang];
-			var selected = 0;
-			var marker_scale = 0.5;
-			if ("ontouchstart" in document.documentElement) marker_scale = 1;
-			var map = L.map("map", {
-				maxZoom: 16 + marker_scale * 4,
-				zoomControl: false,
-				zoomSnap: 0
-			}).setView([22.35, 114.17], 11);
-			map.on('click', function(e) {
-				this.doubleClickZoom.enable();
-			});
-			L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-				maxNativeZoom: 18,
-				maxZoom: 20,
-				attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
-			}).addTo(map);
-			var zoom_container = document.getElementById("zoom_container");
-			var zoom_control = L.control.zoom();
-			zoom_control.onAdd = function(map) {
-				zoom_in.onclick = function(e) {
-					L.DomEvent.disableClickPropagation(this);
-					e.preventDefault();
-					if (map.getZoom() < map.getMaxZoom()) map.zoomIn(map.options.zoomDelta * (e.shiftKey ? 3 : 1));
-				};
-				zoom_out.onclick = function(e) {
-					L.DomEvent.disableClickPropagation(this);
-					e.preventDefault();
-					if (map.getZoom() > map.getMinZoom()) map.zoomOut(map.options.zoomDelta * (e.shiftKey ? 3 : 1));
-				};
-				return zoom_container;
-			};
-			zoom_control.addTo(map);
-			var lang_unresolved_container = document.getElementById("lang_unresolved_container");
-			var lang_unresolved_control = L.control({
-				position: "topleft"
-			});
-			lang_unresolved_control.onAdd = function(map) {
-				return lang_unresolved_container;
-			};
-			lang_unresolved_control.addTo(map);
-			var info = document.getElementById("info");
-			var info_control = L.control({
-				position: "bottomleft"
-			});
-			info_control.onAdd = function(map) {
-				return info;
-			};
-			info_control.addTo(map);
-			if ("ontouchstart" in document.documentElement) {
-				info.style = "font-size: 200%";
-				[zoom_in, zoom_out, document.getElementById("lang"), unresolved].forEach(function(element) {
-					element.style = "width: 78px; height: 78px; font-size: 300%; line-height: 78px";
-				});
-			}
-			var marker_icon = L.icon({
-				iconUrl: "styles/images/marker.png",
-				iconSize: [64, 64].map(x => x * marker_scale),
-				iconAnchor: [32, 64].map(x => x * marker_scale)
-			});
-			var selected_icon = L.icon({
-				iconUrl: "styles/images/selected.png",
-				iconSize: [64, 64].map(x => x * marker_scale),
-				iconAnchor: [32, 64].map(x => x * marker_scale)
-			});
-			var marker_group = L.layerGroup().addTo(map);
-			function add_marker(longlat_index, group) {
-				var marker = L.marker([].concat(longlat[longlat_index]).reverse(), {icon: marker_icon});
-				marker.properties = {};
-				marker.properties["unit_index"] = longlat_index + 1;
-				marker.on("mouseover", function(e) {
-					if (selected == 0) display_status(this.properties["unit_index"]);
-					info.style.opacity = 1;
-				});
-				marker.on("mouseout", function(e) {
-					if (selected == 0) {
-						info.innerText = "";
-						info.style.opacity = 0;
-					}
-				});
-				marker.on("click", function(e) {
-					map.doubleClickZoom.disable();
-					if (selected != 0 && selected != this.properties["unit_index"]) {
-						marker_group.getLayers()[selected - 1].setIcon(marker_icon);
-						selected = 0;
-					}
-					info_switch(this.properties["unit_index"]);
-					if (selected == 0) this.setIcon(marker_icon);
-					else this.setIcon(selected_icon);
-				});
-				marker.addTo(group);
-			}
-			for (var i = 0; i < longlat.length; i++) {
-				if (longlat[i][1] == -91) break;
-				add_marker(i, marker_group);
-			}
-			var lang_callback = function() {
-				if (selected != 0) {
-					info_update(selected, info, marker_scale);
-					info.className += " spaced-dock";
-				}
-				zoom_in.title = localise["zoomIn" + lang];
-				zoom_out.title = localise["zoomOut" + lang];
-				unresolved.title = localise["unresolvedList" + lang];
-			};
-		</script>
-		<script src="scripts/lang.js"></script>
-	</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#82e000">
+    <title>HK Service Map</title>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+    <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+      integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+      crossorigin=""></script>
+    <script src="scripts/localise.js" charset="UTF-8"></script>
+    <script src="scripts/unitinfo.js" charset="UTF-8"></script>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <pre id="info" class="status bar"/>
+    <div id="zoom_container" class="leaflet-control-zoom leaflet-bar leaflet-control">
+      <a id="zoom_in" class="leaflet-control-zoom-in" href="#"
+        title="Zoom in" role="button" aria-label="Zoom in">+</a>
+      <a id="zoom_out" class="leaflet-control-zoom-out" href="#"
+        title="Zoom out" role="button" aria-label="Zoom out">−</a>
+    </div>
+    <div id="lang_unresolved_container" class="leaflet-bar leaflet-control-layers">
+      <a id="lang" href="#" title="Change language" role="button" aria-label="Change language"
+        onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
+        onclick="langChange(langCallback)">
+          <span id="lang_name"></span>
+          <img id="lang_icon" src="styles/images/globe.png" style="width: 100%; height: 100%"/>
+      </a>
+      <a id="unresolved" href="unresolved.html">
+        <img src="styles/images/barrier.png" style="width: 100%; height: 100%"/>
+      </a>
+    </div>
+    <script src="scripts/info.js"></script>
+    <script>
+      /* exported langCallback */
+      /* global displayStatus, infoSwitch, infoUpdate, L, lang, localise, longlat */
+      'use strict';
+
+      document.getElementById('map').style.height = window.innerHeight + 'px';
+      var zoomIn = document.getElementById('zoom_in');
+      zoomIn.title = localise['zoomIn' + lang];
+      var zoomOut = document.getElementById('zoom_out');
+      zoomOut.title = localise['zoomOut' + lang];
+      var unresolved = document.getElementById('unresolved');
+      unresolved.title = localise['unresolvedList' + lang];
+      var selected = 0;
+      var markerScale = 0.5;
+      if ('ontouchstart' in document.documentElement) markerScale = 1;
+      var map = L.map('map', {
+        maxZoom: 16 + markerScale * 4,
+        zoomControl: false,
+        zoomSnap: 0
+      }).setView([22.35, 114.17], 11);
+      map.on('click', function(e) {
+        map.doubleClickZoom.enable();
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxNativeZoom: 18,
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+      var zoomContainer = document.getElementById('zoom_container');
+      var zoomControl = L.control.zoom();
+      zoomControl.onAdd = function(map) {
+        zoomIn.onclick = function(e) {
+          L.DomEvent.disableClickPropagation(this);
+          e.preventDefault();
+          if (map.getZoom() < map.getMaxZoom()) {
+            map.zoomIn(map.options.zoomDelta * (e.shiftKey ? 3 : 1));
+          }
+        };
+        zoomOut.onclick = function(e) {
+          L.DomEvent.disableClickPropagation(this);
+          e.preventDefault();
+          if (map.getZoom() > map.getMinZoom()) {
+            map.zoomOut(map.options.zoomDelta * (e.shiftKey ? 3 : 1));
+          }
+        };
+        return zoomContainer;
+      };
+      zoomControl.addTo(map);
+      var langUnresolvedContainer =
+          document.getElementById('lang_unresolved_container');
+      var langUnresolvedControl = L.control({
+        position: 'topleft'
+      });
+      langUnresolvedControl.onAdd = function(map) {
+        return langUnresolvedContainer;
+      };
+      langUnresolvedControl.addTo(map);
+      var info = document.getElementById('info');
+      var infoControl = L.control({
+        position: 'bottomleft'
+      });
+      infoControl.onAdd = function(map) {
+        return info;
+      };
+      infoControl.addTo(map);
+      if ('ontouchstart' in document.documentElement) {
+        info.style = 'font-size: 200%';
+        [zoomIn, zoomOut, document.getElementById('lang'),
+          unresolved].forEach(function(element) {
+          element.style = 'width: 78px; height: 78px; ' +
+            'font-size: 300%; line-height: 78px';
+        });
+      }
+      var markerIcon = L.icon({
+        iconUrl: 'styles/images/marker.png',
+        iconSize: [64, 64].map(function(x) {
+          return x * markerScale;
+        }),
+        iconAnchor: [32, 64].map(function(x) {
+          return x * markerScale;
+        })
+      });
+      var selectedIcon = L.icon({
+        iconUrl: 'styles/images/selected.png',
+        iconSize: [64, 64].map(function(x) {
+          return x * markerScale;
+        }),
+        iconAnchor: [32, 64].map(function(x) {
+          return x * markerScale;
+        })
+      });
+      var markerGroup = L.layerGroup().addTo(map);
+
+      /**
+       * Add a marker with coordinates and event handlers to a group.
+       * @param {number} longLatIndex - The index of coordinates in longlat.
+       * @param {object} group - Where the marker will be added.
+       */
+      function addMarker(longLatIndex, group) {
+        var marker = L.marker([].concat(longlat[longLatIndex])
+            .reverse(), {icon: markerIcon});
+        marker.properties = {};
+        marker.properties.unitIndex = longLatIndex + 1;
+        marker.on('mouseover', function(e) {
+          if (selected == 0) displayStatus(marker.properties.unitIndex);
+          info.style.opacity = 1;
+        });
+        marker.on('mouseout', function(e) {
+          if (selected == 0) {
+            info.innerText = '';
+            info.style.opacity = 0;
+          }
+        });
+        marker.on('click', function(e) {
+          map.doubleClickZoom.disable();
+          if (selected != 0 && selected != marker.properties.unitIndex) {
+            markerGroup.getLayers()[selected - 1].setIcon(markerIcon);
+            selected = 0;
+          }
+          infoSwitch(marker.properties.unitIndex);
+          if (selected == 0) marker.setIcon(markerIcon);
+          else marker.setIcon(selectedIcon);
+        });
+        marker.addTo(group);
+      }
+      for (var i = 0; i < longlat.length; i++) {
+        if (longlat[i][1] == -91) break;
+        addMarker(i, markerGroup);
+      }
+
+      /** Callback to change all elements' language */
+      function langCallback() {
+        if (selected != 0) {
+          infoUpdate(selected, info, markerScale);
+          info.className += ' spaced-dock';
+        }
+        zoomIn.title = localise['zoomIn' + lang];
+        zoomOut.title = localise['zoomOut' + lang];
+        unresolved.title = localise['unresolvedList' + lang];
+      }
+    </script>
+    <script src="scripts/lang.js"></script>
+  </body>
 </html>

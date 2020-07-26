@@ -1,0 +1,19 @@
+env:
+  browser: true
+extends:
+  - eslint:recommended
+  - google
+parserOptions:
+  ecmaVersion: 5
+  sourceType: script
+plugins:
+  - html
+rules:
+  comma-dangle: 0
+  no-var: 0
+overrides:
+  -
+    files: scripts/localise.js
+    rules:
+      key-spacing: 0
+      max-len: 0

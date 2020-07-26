@@ -1,0 +1,23 @@
+{
+  "name": "hk-service-map",
+  "version": "0.0.0",
+  "description": "HK Service Map is a map to visualise service units data from XML provided by the Hong Kong Social Welfare Department.",
+  "scripts": {
+    "test": "node node_modules/eslint/bin/eslint.js *.html scripts/*.js --ignore-path .gitignore"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/WylieYYYY/hk-service-map.git"
+  },
+  "author": "WylieYYYY",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/WylieYYYY/hk-service-map/issues"
+  },
+  "homepage": "https://gitlab.com/WylieYYYY/hk-service-map#readme",
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-html": "^6.0.2"
+  }
+}
