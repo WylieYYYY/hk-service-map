@@ -25,14 +25,14 @@ Page with a list of unresolved address, navigated to by clicking the fence icon 
 5. Wait for the script to finish and open either `openlayers.html` or `leaflet.html` depends on the preferred API.
 
 Remove the following files before starting a public server:
-- .git
-- .gitignore
+- .eslintrc.yml
+- .git*
 - getinfo.py
+- node_modules
+- package*.json
 - README.md
 - requirements.txt
-- screenshot-hover.png
-- screenshot-info.png
-- screenshot-unresolved.png
+- screenshot-*.png
 
 ### Tested URL
 [Basic Information and Service Quality Information of Residential Care Homes for the Elderly](https://elderlyinfo.swd.gov.hk/sites/ltc-swd/files/rche_rsp_list.xml)  
