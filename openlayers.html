@@ -54,7 +54,7 @@
         if (longlat[i][1] == -91) break;
         var marker = new ol.Feature({
           geometry: new ol.geom.Point(ol.proj.fromLonLat(longlat[i])),
-          unitIndex: i + 1
+          unitIndex: i + 1,
         });
         markerList.push(marker);
       }
@@ -74,24 +74,24 @@
         image: new ol.style.Icon({
           anchor: [0.5, 1],
           src: 'styles/images/marker.png',
-          scale: markerScale
-        })
+          scale: markerScale,
+        }),
       });
       var selectedStyle = new ol.style.Style({
         image: new ol.style.Icon({
           anchor: [0.5, 1],
           src: 'styles/images/selected.png',
-          scale: markerScale
-        })
+          scale: markerScale,
+        }),
       });
       var vectorLayer = new ol.layer.Vector({
         source: new ol.source.Vector({
-          features: markerList
+          features: markerList,
         }),
         style: function(feature) {
           if (selected == feature.getProperties().unitIndex) return [selectedStyle];
           return [markerStyle];
-        }
+        },
       });
       var zoomAnimationDuration = 250;
 
@@ -110,7 +110,7 @@
             view.animate({
               zoom: newZoom,
               duration: zoomAnimationDuration,
-              easing: ol.easing.easeOut
+              easing: ol.easing.easeOut,
             });
           } else view.setZoom(newZoom);
         }
@@ -118,14 +118,14 @@
       var zoomContainer = document.getElementById('zoom_container');
       var ZoomControl = function() {
         ol.control.Control.call(this, {
-          element: zoomContainer
+          element: zoomContainer,
         });
       };
       ZoomControl.prototype = Object.create(ol.control.Control.prototype);
       ZoomControl.prototype.constructor = ZoomControl;
       var LangUnresolvedControl = function() {
         ol.control.Control.call(this, {
-          element: langUnresolvedContainer
+          element: langUnresolvedContainer,
         });
       };
       LangUnresolvedControl.prototype = Object.create(ol.control.Control.prototype);
@@ -135,19 +135,19 @@
         controls: [
           new ol.control.Attribution(),
           new ZoomControl(),
-          new LangUnresolvedControl()
+          new LangUnresolvedControl(),
         ],
         layers: [
           new ol.layer.Tile({
-            source: new ol.source.OSM()
+            source: new ol.source.OSM(),
           }),
-          vectorLayer
+          vectorLayer,
         ],
         view: new ol.View({
           center: ol.proj.fromLonLat([114.17, 22.35]),
           zoom: 11,
-          maxZoom: 16 + markerScale * 4
-        })
+          maxZoom: 16 + markerScale * 4,
+        }),
       });
       map.on('pointermove', function(evt) {
         if (evt.dragging) return;

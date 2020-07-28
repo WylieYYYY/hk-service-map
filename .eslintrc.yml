@@ -9,7 +9,6 @@ parserOptions:
 plugins:
   - html
 rules:
-  comma-dangle: 0
   no-var: 0
 overrides:
   -

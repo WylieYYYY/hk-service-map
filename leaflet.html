@@ -55,7 +55,7 @@
       var map = L.map('map', {
         maxZoom: 16 + markerScale * 4,
         zoomControl: false,
-        zoomSnap: 0
+        zoomSnap: 0,
       }).setView([22.35, 114.17], 11);
       map.on('click', function(e) {
         map.doubleClickZoom.enable();
@@ -63,7 +63,7 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxNativeZoom: 18,
         maxZoom: 20,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
       var zoomContainer = document.getElementById('zoom_container');
       var zoomControl = L.control.zoom();
@@ -88,7 +88,7 @@
       var langUnresolvedContainer =
           document.getElementById('lang_unresolved_container');
       var langUnresolvedControl = L.control({
-        position: 'topleft'
+        position: 'topleft',
       });
       langUnresolvedControl.onAdd = function(map) {
         return langUnresolvedContainer;
@@ -96,7 +96,7 @@
       langUnresolvedControl.addTo(map);
       var info = document.getElementById('info');
       var infoControl = L.control({
-        position: 'bottomleft'
+        position: 'bottomleft',
       });
       infoControl.onAdd = function(map) {
         return info;
@@ -117,7 +117,7 @@
         }),
         iconAnchor: [32, 64].map(function(x) {
           return x * markerScale;
-        })
+        }),
       });
       var selectedIcon = L.icon({
         iconUrl: 'styles/images/selected.png',
@@ -126,7 +126,7 @@
         }),
         iconAnchor: [32, 64].map(function(x) {
           return x * markerScale;
-        })
+        }),
       });
       var markerGroup = L.layerGroup().addTo(map);
 

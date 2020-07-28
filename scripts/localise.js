@@ -4,7 +4,7 @@ var lang = 'TChinese';
 var locale = {
   'English':                         'EN',
   'TChinese':                        '繁',
-  'SChinese':                        '简'
+  'SChinese':                        '简',
 };
 var localise = {
   'zoomInEnglish':                   'Zoom in',
@@ -66,5 +66,5 @@ var localise = {
   'typeResentialCareHomesSChinese':  '院舍类别：',
   'addressOverrideEnglish':          'Address Approximation: ',
   'addressOverrideTChinese':         '近似地址：',
-  'addressOverrideSChinese':         '近似地址：'
+  'addressOverrideSChinese':         '近似地址：',
 };
