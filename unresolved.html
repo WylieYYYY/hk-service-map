@@ -11,15 +11,18 @@
     <script src="scripts/unitinfo.js" charset="UTF-8"></script>
   </head>
   <body>
-    <button id="lang" class="info" title="Change language" style="width: 40px; height: 40px; float:right"
-      onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
-      onclick="langChange(langCallback)"><!--
-        --><span id="lang_name"></span><!--
-        --><img id="lang_icon" src="styles/images/globe.png" style="width: 25px; height: 25px"/><!--
-    --></button>
-    <button id="back" class="info" style="width: 40px; height: 40px; float:right" onclick="history.back()">↩️</button>
-    <div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
-    <div id="empty_placeholder" class="center" style="display: none"></div>
+    <div style="margin-bottom: 3em">
+      <button id="lang" class="info" title="Change language" style="width: 40px; height: 40px; float:right"
+        onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
+        onclick="langChange(langCallback)"><!--
+          --><span id="lang_name"></span><!--
+          --><img id="lang_icon" src="styles/images/globe.png" style="width: 25px; height: 25px"/><!--
+      --></button>
+      <button id="back" class="info" style="width: 40px; height: 40px; float:right"
+          onclick="history.back()">↩️</button>
+      <div id="title" style="height: 40px; text-align: center; line-height: 40px"></div>
+      <div id="empty_placeholder" class="center" style="display: none"></div>
+    </div>
     <script src="scripts/info.js"></script>
     <script>
       /* exported langCallback */
@@ -33,8 +36,8 @@
       emptyPlaceholder.innerText = localise['emptyPlaceholder' + lang];
       document.getElementById('back').title = localise['back' + lang];
       if ('ontouchstart' in document.documentElement) {
-        title.style.fontSize = '200%';
-        emptyPlaceholder.style.fontSize = '200%';
+        title.style.fontSize = '150%';
+        emptyPlaceholder.style.fontSize = '150%';
         document.getElementById('lang').style =
             'width: 60px; height: 60px; float: right; font-size: 200%';
         back.style = 'width: 60px; height: 60px; float: right; font-size: 200%';
@@ -46,7 +49,7 @@
         if ('ontouchstart' in document.documentElement) {
           unresolvedList[i - 1].style = 'font-size: 150%';
         }
-        infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.5);
+        infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.9);
         document.body.appendChild(unresolvedList[i - 1]);
         var divider = document.createElement('div');
         divider.style = 'height: 10px';
@@ -60,7 +63,7 @@
         emptyPlaceholder.innerText = localise['emptyPlaceholder' + lang];
         back.title = localise['back' + lang];
         for (var i = 1; i <= unresolvedList.length; i++) {
-          infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.5);
+          infoUpdate(longlat.length - i, unresolvedList[i - 1], 1.9);
         }
       }
     </script>

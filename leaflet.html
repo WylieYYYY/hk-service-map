@@ -23,7 +23,7 @@
     <pre id="info" class="status bar"/>
     <div id="search_container" class="leaflet-bar leaflet-control-layers"
         onmousedown="event.stopPropagation()" ondblclick="event.stopPropagation()"
-        style="padding: .5rem">
+        ontouchstart="event.stopPropagation()" style="padding: .5rem">
       <div style="display: flex; margin-bottom: .5rem">
         <input id="search_box" onkeyup="clickSearch(event)"/>
         <button id="search_button" type="button"
