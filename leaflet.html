@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="theme-color" content="#82e000">
+    <meta name="viewport" content="width=device-width, user-scalable=no"/>
     <title>HK Service Map</title>
     <link rel="manifest" href="manifest.json"/>
     <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
@@ -13,12 +14,29 @@
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
       integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
       crossorigin=""></script>
+    <script src="https://rawgit.com/farzher/fuzzysort/master/fuzzysort.js"></script>
     <script src="scripts/localise.js" charset="UTF-8"></script>
     <script src="scripts/unitinfo.js" charset="UTF-8"></script>
   </head>
   <body>
     <div id="map" class="map"></div>
     <pre id="info" class="status bar"/>
+    <div id="search_container" class="leaflet-bar leaflet-control-layers"
+        onmousedown="event.stopPropagation()" style="padding: .5rem">
+      <div style="display: flex; margin-bottom: .5rem">
+        <input id="search_box" type="text"
+            onkeyup="clickSearch(event)" style="height: 100%"/>
+        <button id="search_button" type="button"
+            onclick="searchUnit(document.getElementById('search_box').value)"
+            style="display: flex; margin-left: .5rem" aria-label="Search">
+          <img src="styles/images/search.svg"/>
+        </button>
+      </div>
+      <div style="display: flex; align-items: center; float: right">
+        <label for="dynamic_search">Dynamic Search</label>
+        <input id="dynamic_search" type="checkbox" onclick="toggleDynamicSearch()"/>
+      </div>
+    </div>
     <div id="zoom_container" class="leaflet-control-zoom leaflet-bar leaflet-control">
       <a id="zoom_in" class="leaflet-control-zoom-in" href="#"
         title="Zoom in" role="button" aria-label="Zoom in">+</a>
@@ -85,6 +103,15 @@
         return zoomContainer;
       };
       zoomControl.addTo(map);
+      var searchContainer =
+          document.getElementById('search_container');
+      var searchControl = L.control({
+        position: 'topright',
+      });
+      searchControl.onAdd = function(map) {
+        return searchContainer;
+      };
+      searchControl.addTo(map);
       var langUnresolvedContainer =
           document.getElementById('lang_unresolved_container');
       var langUnresolvedControl = L.control({
@@ -153,7 +180,9 @@
         marker.on('click', function(e) {
           map.doubleClickZoom.disable();
           if (selected != 0 && selected != marker.properties.unitIndex) {
-            markerGroup.getLayers()[selected - 1].setIcon(markerIcon);
+            group.getLayers().find(function(marker) {
+              return marker.properties.unitIndex == selected;
+            }).setIcon(markerIcon);
             selected = 0;
           }
           infoSwitch(marker.properties.unitIndex);

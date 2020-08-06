@@ -1,7 +1,96 @@
-/* exported infoSwitch */
-/* global info, lang, locale, localise, markerScale, selected:writable,
-       unitinfo */
+/* exported infoSwitch, searchUnit, toggleDynamicSearch */
+/* global addMarker, fuzzysort, info, lang, locale, localise, longlat, map,
+    markerGroup, markerIcon, markerScale, L, selected:writable, unitinfo */
 'use strict';
+
+// Add and prevent displaying index
+unitinfo[0].unshift(Object.keys(locale).join());
+for (var i = 1; i < unitinfo.length; i++) unitinfo[i].unshift(i - 1);
+var keyparts = ['name', 'district', 'address', 'telephoneNumber',
+  'addTelephoneNumber', 'faxNumber', 'type', 'religious', 'mealProvision',
+  'typeResentialCareHomes', 'addressOverride',
+];
+// match valid keys and get their indexes
+var keyRegex = new RegExp('^(' + keyparts.join('|') + ').*$');
+var keyIndexes = [];
+unitinfo[0].forEach(function(key, index) {
+  if (keyRegex.test(key)) keyIndexes.push(index.toString());
+});
+var searchedGroup = null;
+
+/**
+ * Click search button on pressing return.
+ * @param {object} e - Keyup event.
+ */
+function clickSearch(e) {
+  if (e.keyCode == 13) {
+    e.preventDefault();
+    document.getElementById('search_button').click();
+  }
+}
+
+/**
+ * Toggle whether search should be done during typing.
+ */
+function toggleDynamicSearch() {
+  var searchBox = document.getElementById('search_box');
+  var searchButton = document.getElementById('search_button');
+  if (document.getElementById('dynamic_search').checked) {
+    searchButton.style.display = 'none';
+    searchUnit(searchBox.value);
+    searchBox.onchange = function() {
+      searchUnit(searchBox.value);
+    };
+    searchBox.onpaste = function() {
+      searchUnit(searchBox.value);
+    };
+    searchBox.onkeyup = function() {
+      searchUnit(searchBox.value);
+    };
+  } else {
+    searchButton.style.display = 'flex';
+    searchBox.onchange = undefined;
+    searchBox.onpaste = undefined;
+    searchBox.onkeyup = clickSearch;
+  }
+}
+
+/**
+ * Search and display units with a search term.
+ * @param {string} term - Search term to be used.
+ */
+function searchUnit(term) {
+  if (selected != 0) {
+    (searchedGroup == null ? markerGroup : searchedGroup)
+        .getLayers()[selected - 1].setIcon(markerIcon);
+    selected = 0;
+    info.className = 'status bar';
+    info.innerText = '';
+    info.style.opacity = 0;
+    info.style.width = 'auto';
+  }
+  if (searchedGroup == null) map.removeLayer(markerGroup);
+  else {
+    map.removeLayer(searchedGroup);
+    searchedGroup = null;
+  }
+  if (term == '') {
+    markerGroup.addTo(map);
+    return;
+  }
+  searchedGroup = L.layerGroup();
+  var filteredIndexes = fuzzysort.go(term, unitinfo.slice(1), {
+    keys: keyIndexes,
+    threshold: -10000,
+  }).map(function(x) {
+    return x.obj[0];
+  });
+  for (var i = 0; i < filteredIndexes.length; i++) {
+    if (longlat[i][1] == -91) break;
+    addMarker(filteredIndexes[i], searchedGroup);
+  }
+  searchedGroup.addTo(map);
+}
 
 /**
  * Shows or updates info box according to language and specified unit.
