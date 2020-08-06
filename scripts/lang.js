@@ -23,5 +23,6 @@ function langChange(callback) {
   langRota = (langRota + 1) % langKeyList.length;
   lang = langKeyList[langRota];
   document.getElementById('lang_name').innerText = locale[lang];
+  document.getElementById('lang_icon').style.display = 'none';
   callback == undefined || callback();
 }

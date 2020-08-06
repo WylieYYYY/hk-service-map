@@ -11,19 +11,35 @@
     <link rel="stylesheet" type="text/css" href="styles/styles.css"/>
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList"></script>
     <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/latest/build/ol.js"></script>
+    <script src="https://rawgit.com/farzher/fuzzysort/master/fuzzysort.js"></script>
     <script src="scripts/localise.js" charset="UTF-8"></script>
     <script src="scripts/unitinfo.js" charset="UTF-8"></script>
   </head>
   <body>
     <div id="map" class="map"></div>
     <pre id="info" class="status bar"/>
+    <div id="search_container" class="ol-unselectable ol-control"
+        style="position: absolute; top: .5em; right: .5em; padding: .5rem">
+      <div style="display: flex; margin-bottom: .5rem">
+        <input id="search_box" type="text" onkeyup="clickSearch(event)"/>
+        <button id="search_button" type="button"
+            onclick="searchUnit(document.getElementById('search_box').value)"
+            class="search-button" aria-label="Search">
+          <img src="styles/images/search.svg" style="filter: invert(100%)"/>
+        </button>
+      </div>
+      <div style="float: right">
+        <label for="dynamic_search">Dynamic Search</label>
+        <input id="dynamic_search" type="checkbox" onclick="toggleDynamicSearch()"/>
+      </div>
+    </div>
     <div id="zoom_container" class="ol-unselectable ol-control"
       style="position: absolute; top: .5em; left: .5em">
       <button id="zoom_in" onclick="zoomByDelta(1)">+</button>
       <button id="zoom_out" onclick="zoomByDelta(-1)">−</button>
     </div>
     <div id="lang_unresolved_container" class="ol-unselectable ol-control"
-      style="position: absolute; top: 10%; left: .5em">
+      style="position: absolute; top: 4em; left: .5em">
       <button id="lang" title="Change language" style="color: transparent; text-shadow: 0 0 0 white"
         onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
         onclick="langChange(langCallback)">
@@ -38,7 +54,8 @@
     <script src="scripts/info.js"></script>
     <script>
       /* exported langCallback, zoomByDelta */
-      /* global displayStatus, infoSwitch, infoUpdate, ol, lang, localise, longlat */
+      /* global displayStatus, infoSwitch, infoUpdate, ol, lang, localise, longlat,
+          searchedGroup */
       'use strict';
 
       document.getElementById('map').style.height = window.innerHeight + 'px';
@@ -64,10 +81,10 @@
       var markerScale = 0.5;
       if ('ontouchstart' in document.documentElement) {
         markerScale = 1;
-        info.style = 'font-size: 200%';
+        info.style = 'font-size: 150%';
         [zoomIn, zoomOut, document.getElementById('lang'),
           unresolved].forEach(function(element) {
-          element.style = 'width: 2.75em; height: 2.75em; font-size: 300%';
+          element.style = 'width: 1.5em; height: 1.5em; font-size: 200%';
         });
         langUnresolvedContainer.style.top = '20%';
       }
@@ -90,6 +107,10 @@
           features: markerList,
         }),
         style: function(feature) {
+          if (window.searchedGroup && searchedGroup
+              .indexOf(feature.getProperties().unitIndex - 1) == -1) {
+            return [];
+          }
           if (selected == feature.getProperties().unitIndex) return [selectedStyle];
           return [markerStyle];
         },
@@ -116,6 +137,14 @@
           } else view.setZoom(newZoom);
         }
       }
+      var searchContainer = document.getElementById('search_container');
+      var SearchControl = function() {
+        ol.control.Control.call(this, {
+          element: searchContainer,
+        });
+      };
+      SearchControl.prototype = Object.create(ol.control.Control.prototype);
+      SearchControl.prototype.constructor = SearchControl;
       var zoomContainer = document.getElementById('zoom_container');
       var ZoomControl = function() {
         ol.control.Control.call(this, {
@@ -135,6 +164,7 @@
         target: 'map',
         controls: [
           new ol.control.Attribution(),
+          new SearchControl(),
           new ZoomControl(),
           new LangUnresolvedControl(),
         ],

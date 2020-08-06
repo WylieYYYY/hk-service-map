@@ -1,6 +1,7 @@
 /* exported infoSwitch, searchUnit, toggleDynamicSearch */
 /* global addMarker, fuzzysort, info, lang, locale, localise, longlat, map,
-    markerGroup, markerIcon, markerScale, L, selected:writable, unitinfo */
+    markerGroup, markerIcon, markerScale, L, selected:writable, unitinfo,
+    vectorLayer */
 'use strict';
 
 // Add and prevent displaying index
@@ -55,41 +56,48 @@ function toggleDynamicSearch() {
   }
 }
 
+var isLeaflet = window.ol == undefined;
 /**
  * Search and display units with a search term.
  * @param {string} term - Search term to be used.
  */
 function searchUnit(term) {
   if (selected != 0) {
-    (searchedGroup == null ? markerGroup : searchedGroup)
-        .getLayers()[selected - 1].setIcon(markerIcon);
+    if (isLeaflet) {
+      (searchedGroup == null ? markerGroup : searchedGroup)
+          .getLayers().find(function(marker) {
+            return marker.properties.unitIndex == selected;
+          }).setIcon(markerIcon);
+    }
     selected = 0;
     info.className = 'status bar';
     info.innerText = '';
     info.style.opacity = 0;
     info.style.width = 'auto';
   }
-  if (searchedGroup == null) map.removeLayer(markerGroup);
-  else {
-    map.removeLayer(searchedGroup);
-    searchedGroup = null;
+  if (isLeaflet) {
+    if (searchedGroup == null) map.removeLayer(markerGroup);
+    else map.removeLayer(searchedGroup);
   }
+  searchedGroup = null;
   if (term == '') {
-    markerGroup.addTo(map);
+    if (isLeaflet) markerGroup.addTo(map);
     return;
   }
-  searchedGroup = L.layerGroup();
   var filteredIndexes = fuzzysort.go(term, unitinfo.slice(1), {
     keys: keyIndexes,
     threshold: -10000,
   }).map(function(x) {
     return x.obj[0];
   });
-  for (var i = 0; i < filteredIndexes.length; i++) {
-    if (longlat[i][1] == -91) break;
-    addMarker(filteredIndexes[i], searchedGroup);
-  }
-  searchedGroup.addTo(map);
+  searchedGroup = isLeaflet ? L.layerGroup() : filteredIndexes;
+  if (isLeaflet) {
+    for (var i = 0; i < filteredIndexes.length; i++) {
+      if (longlat[i][1] == -91) break;
+      addMarker(filteredIndexes[i], searchedGroup);
+    }
+    searchedGroup.addTo(map);
+  } else vectorLayer.getSource().changed();
 }
 
 /**

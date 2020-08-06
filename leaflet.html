@@ -22,28 +22,30 @@
     <div id="map" class="map"></div>
     <pre id="info" class="status bar"/>
     <div id="search_container" class="leaflet-bar leaflet-control-layers"
-        onmousedown="event.stopPropagation()" style="padding: .5rem">
+        onmousedown="event.stopPropagation()" ondblclick="event.stopPropagation()"
+        style="padding: .5rem">
       <div style="display: flex; margin-bottom: .5rem">
-        <input id="search_box" type="text"
-            onkeyup="clickSearch(event)" style="height: 100%"/>
+        <input id="search_box" onkeyup="clickSearch(event)"/>
         <button id="search_button" type="button"
             onclick="searchUnit(document.getElementById('search_box').value)"
-            style="display: flex; margin-left: .5rem" aria-label="Search">
+            class="search-button" aria-label="Search">
           <img src="styles/images/search.svg"/>
         </button>
       </div>
       <div style="display: flex; align-items: center; float: right">
         <label for="dynamic_search">Dynamic Search</label>
-        <input id="dynamic_search" type="checkbox" onclick="toggleDynamicSearch()"/>
+        <input id="dynamic_search" type="checkbox" autocomplete="off" onclick="toggleDynamicSearch()"/>
       </div>
     </div>
-    <div id="zoom_container" class="leaflet-control-zoom leaflet-bar leaflet-control">
+    <div id="zoom_container" ondblclick="event.stopPropagation()"
+        class="leaflet-control-zoom leaflet-bar leaflet-control">
       <a id="zoom_in" class="leaflet-control-zoom-in" href="#"
         title="Zoom in" role="button" aria-label="Zoom in">+</a>
       <a id="zoom_out" class="leaflet-control-zoom-out" href="#"
         title="Zoom out" role="button" aria-label="Zoom out">−</a>
     </div>
-    <div id="lang_unresolved_container" class="leaflet-bar leaflet-control-layers">
+    <div id="lang_unresolved_container" ondblclick="event.stopPropagation()"
+        class="leaflet-bar leaflet-control-layers">
       <a id="lang" href="#" title="Change language" role="button" aria-label="Change language"
         onmouseenter="langMouseOver(true)" onmouseleave="langMouseOver(false)"
         onclick="langChange(langCallback)">
@@ -130,11 +132,11 @@
       };
       infoControl.addTo(map);
       if ('ontouchstart' in document.documentElement) {
-        info.style = 'font-size: 200%';
+        info.style = 'font-size: 150%';
         [zoomIn, zoomOut, document.getElementById('lang'),
           unresolved].forEach(function(element) {
-          element.style = 'width: 78px; height: 78px; ' +
-            'font-size: 300%; line-height: 78px';
+          element.style = 'width: 1.5em; height: 1.5em; ' +
+            'font-size: 200%; line-height: 1.5em';
         });
       }
       var markerIcon = L.icon({
