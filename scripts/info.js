@@ -1,6 +1,6 @@
 /* exported infoSwitch, searchUnit, toggleDynamicSearch */
 /* global addMarker, fuzzysort, info, lang, locale, localise, longlat, map,
-    markerGroup, markerIcon, markerScale, L, selected:writable, unitinfo,
+    markerGroup, markerIcon, markerScale, L, ol, selected:writable, unitinfo,
     vectorLayer */
 'use strict';
 
@@ -57,6 +57,7 @@ function toggleDynamicSearch() {
 }
 
 var isLeaflet = window.ol == undefined;
+
 /**
  * Search and display units with a search term.
  * @param {string} term - Search term to be used.
@@ -81,7 +82,16 @@ function searchUnit(term) {
   }
   searchedGroup = null;
   if (term == '') {
-    if (isLeaflet) markerGroup.addTo(map);
+    if (isLeaflet) {
+      markerGroup.addTo(map);
+      map.setView([22.35, 114.17], 11);
+    } else {
+      map.setView(new ol.View({
+        center: ol.proj.fromLonLat([114.17, 22.35]),
+        zoom: 11,
+        maxZoom: 16 + markerScale * 4,
+      }));
+    }
     return;
   }
   var filteredIndexes = fuzzysort.go(term, unitinfo.slice(1), {
@@ -93,11 +103,26 @@ function searchUnit(term) {
   searchedGroup = isLeaflet ? L.layerGroup() : filteredIndexes;
   if (isLeaflet) {
     for (var i = 0; i < filteredIndexes.length; i++) {
-      if (longlat[i][1] == -91) break;
+      if (longlat[filteredIndexes[i]][1] == -91) continue;
       addMarker(filteredIndexes[i], searchedGroup);
     }
     searchedGroup.addTo(map);
-  } else vectorLayer.getSource().changed();
+    map.fitBounds(L.latLngBounds(filteredIndexes.map(function(index) {
+      return [].concat(longlat[index]).reverse();
+    }).filter(function(coord) {
+      return coord[0] != -91;
+    })), {animate: false, padding: [50, 50]});
+  } else {
+    vectorLayer.getSource().changed();
+    if (filteredIndexes.length == 0) return;
+    map.getView().fit(ol.proj.transformExtent(ol.extent.boundingExtent(
+        filteredIndexes.map(function(index) {
+          return longlat[index];
+        }).filter(function(coord) {
+          return coord[1] != -91;
+        })), ol.proj.get('EPSG:4326'), ol.proj.get('EPSG:3857')),
+    {padding: [50, 50, 50, 50]});
+  }
 }
 
 /**
