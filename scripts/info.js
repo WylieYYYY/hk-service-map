@@ -57,6 +57,31 @@ function toggleDynamicSearch() {
 }
 
 var isLeaflet = window.ol == undefined;
+var fitTimeout = 0;
+
+/**
+ * Fit the map to search results.
+ * @param {object} filteredIndexes - An array of longLat index to be considered.
+ */
+function fitToSearch(filteredIndexes) {
+  fitTimeout = 0;
+  if (isLeaflet) {
+    map.fitBounds(L.latLngBounds(filteredIndexes.map(function(index) {
+      return [].concat(longlat[index]).reverse();
+    }).filter(function(coord) {
+      return coord[0] != -91;
+    })), {padding: [50, 50]});
+  } else {
+    if (filteredIndexes.length == 0) return;
+    map.getView().fit(ol.proj.transformExtent(ol.extent.boundingExtent(
+        filteredIndexes.map(function(index) {
+          return longlat[index];
+        }).filter(function(coord) {
+          return coord[1] != -91;
+        })), ol.proj.get('EPSG:4326'), ol.proj.get('EPSG:3857')),
+    {padding: [50, 50, 50, 50]});
+  }
+}
 
 /**
  * Search and display units with a search term.
@@ -82,16 +107,10 @@ function searchUnit(term) {
   }
   searchedGroup = null;
   if (term == '') {
-    if (isLeaflet) {
-      markerGroup.addTo(map);
-      map.setView([22.35, 114.17], 11);
-    } else {
-      map.setView(new ol.View({
-        center: ol.proj.fromLonLat([114.17, 22.35]),
-        zoom: 11,
-        maxZoom: 16 + markerScale * 4,
-      }));
-    }
+    if (isLeaflet) markerGroup.addTo(map);
+    fitToSearch(longlat.map(function(_, i) {
+      return i;
+    }));
     return;
   }
   var filteredIndexes = fuzzysort.go(term, unitinfo.slice(1), {
@@ -107,22 +126,13 @@ function searchUnit(term) {
       addMarker(filteredIndexes[i], searchedGroup);
     }
     searchedGroup.addTo(map);
-    map.fitBounds(L.latLngBounds(filteredIndexes.map(function(index) {
-      return [].concat(longlat[index]).reverse();
-    }).filter(function(coord) {
-      return coord[0] != -91;
-    })), {animate: false, padding: [50, 50]});
-  } else {
-    vectorLayer.getSource().changed();
-    if (filteredIndexes.length == 0) return;
-    map.getView().fit(ol.proj.transformExtent(ol.extent.boundingExtent(
-        filteredIndexes.map(function(index) {
-          return longlat[index];
-        }).filter(function(coord) {
-          return coord[1] != -91;
-        })), ol.proj.get('EPSG:4326'), ol.proj.get('EPSG:3857')),
-    {padding: [50, 50, 50, 50]});
+  } else vectorLayer.getSource().changed();
+  if (fitTimeout != 0) {
+    clearTimeout(fitTimeout);
+    fitTimeout = 0;
   }
+  var timeout = document.getElementById('dynamic_search').checked? 400 : 0;
+  fitTimeout = setTimeout(fitToSearch, timeout, filteredIndexes);
 }
 
 /**

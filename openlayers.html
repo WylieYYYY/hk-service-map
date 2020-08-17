@@ -54,8 +54,8 @@
     <script src="scripts/info.js"></script>
     <script>
       /* exported langCallback, zoomByDelta */
-      /* global displayStatus, infoSwitch, infoUpdate, ol, lang, localise, longlat,
-          searchedGroup */
+      /* global displayStatus, fitToSearch, infoSwitch, infoUpdate, ol, lang,
+          localise, longlat, searchedGroup */
       'use strict';
 
       document.getElementById('map').style.height = window.innerHeight + 'px';
@@ -174,12 +174,10 @@
           }),
           vectorLayer,
         ],
-        view: new ol.View({
-          center: ol.proj.fromLonLat([114.17, 22.35]),
-          zoom: 11,
-          maxZoom: 16 + markerScale * 4,
-        }),
       });
+      fitToSearch(longlat.map(function(_, i) {
+        return i;
+      }));
       map.on('pointermove', function(evt) {
         if (evt.dragging) return;
         var pixel = map.getEventPixel(evt.originalEvent);

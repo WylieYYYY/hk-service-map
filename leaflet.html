@@ -59,7 +59,8 @@
     <script src="scripts/info.js"></script>
     <script>
       /* exported langCallback */
-      /* global displayStatus, infoSwitch, infoUpdate, L, lang, localise, longlat */
+      /* global displayStatus, fitToSearch, infoSwitch, infoUpdate, L, lang,
+          localise, longlat */
       'use strict';
 
       document.getElementById('map').style.height = window.innerHeight + 'px';
@@ -76,7 +77,10 @@
         maxZoom: 16 + markerScale * 4,
         zoomControl: false,
         zoomSnap: 0,
-      }).setView([22.35, 114.17], 11);
+      });
+      fitToSearch(longlat.map(function(_, i) {
+        return i;
+      }));
       map.on('click', function(e) {
         map.doubleClickZoom.enable();
       });
