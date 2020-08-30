@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "HK Service Map is a map to visualise service units data from XML provided by the Hong Kong Social Welfare Department.",
   "scripts": {
-    "test": "node node_modules/eslint/bin/eslint.js *.html scripts/*.js --ignore-path .gitignore"
+    "test": "node node_modules/eslint/bin/eslint.js --ignore-pattern scripts/unitinfo.js *.html scripts/*.js --ignore-path .gitignore"
   },
   "repository": {
     "type": "git",
