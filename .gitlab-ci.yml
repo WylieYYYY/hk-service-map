@@ -13,6 +13,7 @@ eslint:
 pages:
     stage: build
     script:
+        - apk update && apk add patch
         - find . -maxdepth 1 -name '*.html' -exec patch {} demopatch.diff \;
         - ls *.rej 2>/dev/null && exit 1 || echo No rejection.
         - rm -rf getinfo.py package*.json README.md requirements.txt screenshot-*.png demopatch.diff *.orig
