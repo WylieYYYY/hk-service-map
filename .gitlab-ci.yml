@@ -14,7 +14,7 @@ pages:
     stage: build
     script:
         - find . -maxdepth 1 -name '*.html' -exec patch {} demopatch.diff \;
-        - ls *.rej 2>/dev/null
+        - ls *.rej 2>/dev/null && exit 1 || echo No rejection.
         - rm -r getinfo.py package*.json README.md requirements.txt screenshot-*.png demopatch.diff *.orig
         - cp -r * .public
         - mv .public public
