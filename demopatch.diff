@@ -1,0 +1,30 @@
+*** map.html
+--- map.html
+***************
+*** 1 ****
+!     <title>HK Service Map</title>
+--- 1 ----
+!     <title>HK Service Map Demo</title>
+***************
+*** 2 ****
+--- 2,13 ----
++     <script>
++       function resetDemo() {
++         sessionStorage.removeItem('longlat');
++         window.location.href = '.';
++       }
++       const longlatString = sessionStorage.getItem('longlat');
++       if (longlatString !== null) {
++         window.longlat = JSON.parse(longlatString);
++         window.unitinfo = JSON.parse(sessionStorage.getItem('unitinfo'));
++       }
++     </script>
+    </head>
+***************
+*** 2,3 ****
+--- 2,6 ----
++     <button onclick="resetDemo()" style="position: fixed; right: .5em; bottom: 2em; z-index: 1000; padding: .5em; background-color: red;">
++       Reset demo
++     </button>
+    </body>
+  </html>

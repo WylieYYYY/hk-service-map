@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#82e000">
+    <title>HK Service Map Demo</title>
+    <link rel="manifest" href="manifest.json"/>
+    <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"/>
+    <script>
+      if (sessionStorage.getItem('longlat') !== null) {
+        window.location.href = sessionStorage.getItem('useLeaflet') === 'true' ?
+            'leaflet.html' : 'openlayers.html';
+      }
+      function handleFile() {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const unitinfoJs = e.target.result;
+          const longlat = /^var longlat = (.*?);$/m.exec(unitinfoJs);
+          const unitinfo = /^var unitinfo = (.*?);$/m.exec(unitinfoJs);
+          const continueButton = document.getElementById('continue_button');
+          if (!longlat || !unitinfo) {
+            document.getElementById('dialog_error').innerText =
+                'Selected file is invalid.';
+            continueButton.disabled = true;
+            return;
+          }
+          sessionStorage.setItem('longlat', longlat[1]);
+          sessionStorage.setItem('unitinfo', unitinfo[1]);
+          document.getElementById('dialog_error').innerText = '';
+          continueButton.disabled = false;
+        };
+        reader.readAsText(document.getElementById('file_input').files[0]);
+      }
+      function continueToMap() {
+        const useLeaflet = document.getElementById('leaflet_radio').checked;
+        sessionStorage.setItem('useLeaflet', useLeaflet);
+        window.location.href = useLeaflet ? 'leaflet.html' : 'openlayers.html';
+      }
+    </script>
+  </head>
+  <body>
+    <div id="dialog_backdrop" class="modal-backdrop"></div>
+    <div id="file_dialog" class="modal text-light" tabindex="-1" role="dialog"
+        aria-labelledby="modaltitle" aria-hidden="true" style="display: block;">
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark">
+          <div class="modal-header">
+            <h5 class="modal-title">Select an unit info file</h5>
+          </div>
+          <div class="modal-body">
+            <p>
+              This demo, alongside with the amending feature of the generation script, do not support
+              'unitinfo.js' with modified syntax. If no file is selected, a demo-only 'unitinfo.js'
+              is used instead.
+            </p>
+            <input id="file_input" type="file" name="unit info"
+                accept="text/javascript" onchange="handleFile()"/>
+            <hr class="my-4"/>
+            <h6>Layering Service:</h6>
+            <input id="openlayers_radio" type="radio" name="version" class="radio" checked/>
+            <label for="openlayers_radio">OpenLayers (Recommended for Computer)</label>
+            <br/>
+            <input id="leaflet_radio" type="radio" name="version" class="radio"/>
+            <label for="leaflet_radio">Leaflet.js (Recommended for Mobile)</label>
+            <p>
+              The 'Reset demo' button can be found at the bottom right of the unresolved page and
+              OpenLayers map page.
+            </p>
+          </div>
+          <div class="modal-footer" style="justify-content: space-between;">
+            <p id="dialog_error" class="text-danger"></p>
+            <button id="continue_button" onclick="continueToMap()" type="button"
+                class="btn btn-primary">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
