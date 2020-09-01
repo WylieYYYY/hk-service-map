@@ -29,7 +29,7 @@
         </button>
       </div>
       <div style="float: right">
-        <label for="dynamic_search">Dynamic Search</label>
+        <label id="dynamic_search_label" for="dynamic_search"></label>
         <input id="dynamic_search" type="checkbox" onclick="toggleDynamicSearch()"/>
       </div>
     </div>
@@ -65,6 +65,8 @@
       zoomOut.title = localise['zoomOut' + lang];
       var unresolved = document.getElementById('unresolved');
       unresolved.title = localise['unresolvedList' + lang];
+      document.getElementById('dynamic_search_label').innerText =
+          localise['dynamicSearch' + lang];
       var info = document.getElementById('info');
       var markerList = [];
       var selected = 0;
@@ -216,6 +218,8 @@
         zoomIn.title = localise['zoomIn' + lang];
         zoomOut.title = localise['zoomOut' + lang];
         unresolved.title = localise['unresolvedList' + lang];
+        document.getElementById('dynamic_search_label').innerText =
+            localise['dynamicSearch' + lang];
       }
     </script>
     <script src="scripts/lang.js"></script>
