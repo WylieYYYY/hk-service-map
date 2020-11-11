@@ -8,25 +8,26 @@
     <link rel="shortcut icon" type="image/png" href="styles/images/favicon.png"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"/>
     <script>
-      if (sessionStorage.getItem('longlat') !== null) {
-        window.location.href = sessionStorage.getItem('useLeaflet') === 'true' ?
+      if (sessionStorage
+          .getItem('file:hk-service-map,/../scripts/unitinfo.js') !== null) {
+        window.location.href = sessionStorage
+            .getItem('var:hk-service-map,useLeaflet') === 'true' ?
             'leaflet.html' : 'openlayers.html';
       }
       function handleFile() {
         const reader = new FileReader();
         reader.onload = (e) => {
-          const unitinfoJs = e.target.result;
-          const longlat = /^var longlat = (.*?);$/m.exec(unitinfoJs);
-          const unitinfo = /^var unitinfo = (.*?);$/m.exec(unitinfoJs);
+          const unitinfo = e.target.result;
           const continueButton = document.getElementById('continue_button');
-          if (!longlat || !unitinfo) {
+          if (!/^var longlat = (.*?);$/m.test(unitinfo) ||
+              !/^var unitinfo = (.*?);$/m.test(unitinfo)) {
             document.getElementById('dialog_error').innerText =
                 'Selected file is invalid.';
             continueButton.disabled = true;
             return;
           }
-          sessionStorage.setItem('longlat', longlat[1]);
-          sessionStorage.setItem('unitinfo', unitinfo[1]);
+          sessionStorage.setItem(
+              'file:hk-service-map,/../scripts/unitinfo.js', unitinfo);
           document.getElementById('dialog_error').innerText = '';
           continueButton.disabled = false;
         };
@@ -34,7 +35,7 @@
       }
       function continueToMap() {
         const useLeaflet = document.getElementById('leaflet_radio').checked;
-        sessionStorage.setItem('useLeaflet', useLeaflet);
+        sessionStorage.setItem('var:hk-service-map,useLeaflet', useLeaflet);
         window.location.href = useLeaflet ? 'leaflet.html' : 'openlayers.html';
       }
     </script>
