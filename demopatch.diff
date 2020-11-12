@@ -7,14 +7,28 @@
 !     <title>HK Service Map Demo</title>
 ***************
 *** 2 ****
---- 2,19 ----
+--- 2,33 ----
 +     <script>
++       function changeService() {
++         if (window.location.pathname === '/hk-service-map/openlayers.html') {
++           sessionStorage.setItem('var:hk-service-map,useLeaflet', true);
++           window.location.href = 'leaflet.html';
++           return;
++         }
++         if (window.location.pathname === '/hk-service-map/leaflet.html') {
++           sessionStorage.setItem('var:hk-service-map,useLeaflet', false);
++           window.location.href = 'openlayers.html';
++           return;
++         }
++         alert('Not avaiable here, try again on the main map page.');
++       }
 +       function resetDemo() {
 +         sessionStorage.removeItem(
 +           'file:hk-service-map,/../scripts/unitinfo.js');
 +         const returnPath = sessionStorage.getItem('var:,returnPath');
 +         window.location.href = returnPath === null ?
 +             '.' : window.location.host + returnPath;
++         sessionStorage.removeItem('var:,returnPath');
 +       }
 +       const sessionInfo = sessionStorage
 +           .getItem('file:hk-service-map,/../scripts/unitinfo.js');
@@ -27,12 +41,14 @@
 +     </script>
     </head>
 ***************
-*** 2,3 ****
---- 2,8 ----
+*** 2 ****
+--- 2,10 ----
 +     <div style="position: fixed; right: .5em; bottom: 2em; z-index: 1000;">
++       <button onclick="changeService()" style="padding: .5em; background-color: teal;">
++         Change Layering Service
++       </button>
 +       <button onclick="resetDemo()" style="padding: .5em; background-color: red;">
 +         Reset demo
 +       </button>
 +     </div>
-    </body>
-  </html>
+    </head>
