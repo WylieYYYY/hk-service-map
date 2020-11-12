@@ -7,7 +7,7 @@
 !     <title>HK Service Map Demo</title>
 ***************
 *** 2 ****
---- 2,33 ----
+--- 2,36 ----
 +     <script>
 +       function changeService() {
 +         if (window.location.pathname === '/hk-service-map/openlayers.html') {
@@ -23,12 +23,15 @@
 +         alert('Not avaiable here, try again on the main map page.');
 +       }
 +       function resetDemo() {
-+         sessionStorage.removeItem(
-+           'file:hk-service-map,/../scripts/unitinfo.js');
 +         const returnPath = sessionStorage.getItem('var:,returnPath');
-+         window.location.href = returnPath === null ?
-+             '.' : window.location.host + returnPath;
++         if (returnPath === null) {
++           sessionStorage.removeItem(
++               'file:hk-service-map,/../scripts/unitinfo.js');
++           window.location.href = '.';
++           return;
++         }
 +         sessionStorage.removeItem('var:,returnPath');
++         window.location.href = window.location.host + returnPath;
 +       }
 +       const sessionInfo = sessionStorage
 +           .getItem('file:hk-service-map,/../scripts/unitinfo.js');
